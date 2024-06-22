@@ -1,0 +1,2997 @@
+# PACKAGES ----
+
+library(haven)
+library(ggplot2)
+library(rms)
+
+# SEED ----
+
+set.seed(...)
+
+# DATA ----
+
+...
+
+# SELECTION CRITERIA ----
+
+## 1. Selecting participants who did not withdraw consent ----
+
+length(unique(data.wide$id))
+data.wide <- subset(data.wide, withdrawn == 0)
+length(unique(data.wide$id))
+
+## 2. Selecting participants with dose.T0 & dose.T1 <= 600 ----
+
+data.wide <- subset(data.wide, dose.T0 <= 600)
+length(unique(data.wide$id))
+
+data.wide <- subset(data.wide, dose.T1 <= 600)
+length(unique(data.wide$id))
+
+## 3. Selecting participants with recommendation at T1 ----
+
+data.wide <- subset(data.wide, !is.na(recom.T1))
+length(unique(data.wide$id))
+
+# VARIABLES ----
+
+## DEPENDENT VARIABLES ----
+
+### recom.T1 
+
+table(data.wide$recom.T1, exclude = NULL)
+prop.table(table(data.wide$recom.T1, exclude = NULL))
+
+data.wide$recom.up.T1 <- ifelse(data.wide$recom.T1 == "-1",
+                                NA,
+                                data.wide$recom.T1)
+
+data.wide$recom.down.T1 <- ifelse(data.wide$recom.T1 == "1",
+                                  NA,
+                                  abs(data.wide$recom.T1))
+
+## INDEPENDENT VARIABLES ----
+
+### COMPLETE SAMPLE ----
+
+#### male
+
+data.wide$male <- ifelse(data.wide$male == "1",
+                         1,
+                         0)
+
+table(data.wide$male, exclude = NULL)
+prop.table(table(data.wide$male, exclude = NULL))
+
+#### age.T0
+
+summary(data.wide$age.T0)
+sd(data.wide$age.T0, na.rm = TRUE)
+
+data.wide$age.c.T0 <- data.wide$age.T0 - 75
+
+#### age.T1
+
+data.wide$age.T1 <- data.wide$age.T0 + data.wide$day_visit_1 / 365.25
+
+summary(data.wide$age.T1)
+sd(data.wide$age.T1, na.rm = TRUE)
+
+data.wide$age.c.T1 <- data.wide$age.T1 - 75
+
+#### dose.T0
+
+table(data.wide$dose.T0, exclude = NULL)
+summary(data.wide$dose.T0)
+sd(data.wide$dose.T0, na.rm = TRUE)
+
+#### dose.T1
+
+table(data.wide$dose.T1, exclude = NULL)
+summary(data.wide$dose.T1)
+sd(data.wide$dose.T1, na.rm = TRUE)
+
+#### dose.T0 x dose.T1
+
+table(data.wide$dose.T0 - data.wide$dose.T1, exclude = NULL)
+summary(data.wide$dose.T0 - data.wide$dose.T1)
+sd(data.wide$dose.T0 - data.wide$dose.T1, na.rm = TRUE)
+
+#### NYHA.scale.T0
+
+table(data.wide$NYHA.scale.T0, exclude = NULL)
+prop.table(table(data.wide$NYHA.scale.T0, exclude = NULL))
+
+#### NYHA.scale.T1
+
+table(data.wide$NYHA.scale.T1, exclude = NULL)
+prop.table(table(data.wide$NYHA.scale.T1, exclude = NULL))
+
+#### NYHA.scale.T0 x NYHA.scale.T1
+
+table(data.wide$NYHA.scale.T0, data.wide$NYHA.scale.T1, exclude = NULL) 
+prop.table(table(data.wide$NYHA.scale.T0, data.wide$NYHA.scale.T1, exclude = NULL))
+
+#### angina.T0
+
+table(data.wide$angina.T0, exclude = NULL)
+prop.table(table(data.wide$angina.T0, exclude = NULL)) 
+
+#### angina.T1
+
+table(data.wide$angina.T1, exclude = NULL)
+prop.table(table(data.wide$angina.T1, exclude = NULL)) 
+
+#### angina.T0 x angina.T1 
+
+table(data.wide$angina.T0, data.wide$angina.T1, exclude = NULL)
+prop.table(table(data.wide$angina.T0, data.wide$angina.T1, exclude = NULL))
+
+#### edema.scale.T0
+
+table(data.wide$edema.scale.T0, exclude = NULL)
+prop.table(table(data.wide$edema.scale.T0, exclude = NULL)) 
+
+#### edema.scale.T1
+
+table(data.wide$edema.scale.T1, exclude = NULL)
+prop.table(table(data.wide$edema.scale.T1, exclude = NULL)) 
+
+#### edema.scale.T0 x edema.scale.T1
+
+table(data.wide$edema.scale.T0, data.wide$edema.scale.T1, exclude = NULL)
+prop.table(table(data.wide$edema.scale.T0, data.wide$edema.scale.T1, exclude = NULL))
+
+#### orthopnea.scale.T0
+
+table(data.wide$orthopnea.scale.T0, exclude = NULL)
+prop.table(table(data.wide$orthopnea.scale.T0, exclude = NULL)) 
+
+#### orthopnea.scale.T1
+
+table(data.wide$orthopnea.scale.T1, exclude = NULL)
+prop.table(table(data.wide$orthopnea.scale.T1, exclude = NULL)) 
+
+#### orthopnea.scale.T0 x orthopnea.scale.T1
+
+table(data.wide$orthopnea.scale.T0, data.wide$orthopnea.scale.T1, exclude = NULL)
+prop.table(table(data.wide$orthopnea.scale.T0, data.wide$orthopnea.scale.T1, exclude = NULL))
+
+#### PND.scale.T0
+
+table(data.wide$PND.scale.T0, exclude = NULL)
+prop.table(table(data.wide$PND.scale.T0, exclude = NULL))
+
+#### PND.scale.T1
+
+table(data.wide$PND.scale.T1, exclude = NULL)
+prop.table(table(data.wide$PND.scale.T1, exclude = NULL))
+
+#### PND.scale.T0 x PND.scale.T1
+
+table(data.wide$PND.scale.T0, data.wide$PND.scale.T1, exclude = NULL)
+prop.table(table(data.wide$PND.scale.T0, data.wide$PND.scale.T1, exclude = NULL))
+
+#### cough.scale.T0
+
+table(data.wide$cough.scale.T0, exclude = NULL)
+prop.table(table(data.wide$cough.scale.T0, exclude = NULL)) 
+
+#### cough.scale.T1
+
+table(data.wide$cough.scale.T1, exclude = NULL)
+prop.table(table(data.wide$cough.scale.T1, exclude = NULL)) 
+
+#### cough.scale.T0 x cough.scale.T1
+
+table(data.wide$cough.scale.T0, data.wide$cough.scale.T1, exclude = NULL)
+prop.table(table(data.wide$cough.scale.T0, data.wide$cough.scale.T1, exclude = NULL))
+
+#### nocturia.scale.T0
+
+table(data.wide$nocturia.scale.T0, exclude = NULL)
+prop.table(table(data.wide$nocturia.scale.T0, exclude = NULL)) 
+
+#### nocturia.scale.T1
+
+table(data.wide$nocturia.scale.T1, exclude = NULL)
+prop.table(table(data.wide$nocturia.scale.T1, exclude = NULL)) 
+
+#### nocturia.scale.T0 x nocturia.scale.T1
+
+table(data.wide$nocturia.scale.T0, data.wide$nocturia.scale.T1, exclude = NULL)
+prop.table(table(data.wide$nocturia.scale.T0, data.wide$nocturia.scale.T1, exclude = NULL))
+
+#### dizziness.scale.T0
+
+table(data.wide$dizziness.scale.T0, exclude = NULL)
+prop.table(table(data.wide$dizziness.scale.T0, exclude = NULL))
+
+#### dizziness.scale.T1
+
+table(data.wide$dizziness.scale.T1, exclude = NULL)
+prop.table(table(data.wide$dizziness.scale.T1, exclude = NULL)) 
+
+#### dizziness.scale.T0 x dizziness.scale.T1
+
+table(data.wide$dizziness.scale.T0, data.wide$dizziness.scale.T1, exclude = NULL)
+prop.table(table(data.wide$dizziness.scale.T0, data.wide$dizziness.scale.T1, exclude = NULL))
+
+#### orthostasis.scale.T0
+
+table(data.wide$orthostasis.scale.T0, exclude = NULL)
+prop.table(table(data.wide$orthostasis.scale.T0, exclude = NULL)) 
+
+#### orthostasis.scale.T1
+
+table(data.wide$orthostasis.scale.T1, exclude = NULL)
+prop.table(table(data.wide$orthostasis.scale.T1, exclude = NULL)) 
+
+#### orthostasis.scale.T0 x orthostasis.scale.T1
+
+table(data.wide$orthostasis.scale.T0, data.wide$orthostasis.scale.T1, exclude = NULL)
+prop.table(table(data.wide$orthostasis.scale.T0, data.wide$orthostasis.scale.T1, exclude = NULL))
+
+#### syncope.T0
+
+table(data.wide$syncope.T0, exclude = NULL)
+prop.table(table(data.wide$syncope.T0, exclude = NULL)) 
+
+#### syncope.T1
+
+table(data.wide$syncope.T1, exclude = NULL)
+prop.table(table(data.wide$syncope.T1, exclude = NULL)) 
+
+#### syncope.T0 x syncope.T1
+
+table(data.wide$syncope.T0, data.wide$syncope.T1, exclude = NULL)
+prop.table(table(data.wide$syncope.T0, data.wide$syncope.T1, exclude = NULL))
+
+#### weight.T0
+
+summary(data.wide$weight.T0) 
+sd(data.wide$weight.T0, na.rm = TRUE) 
+
+#### weight.T1
+
+summary(data.wide$weight.T1) 
+sd(data.wide$weight.T1, na.rm = TRUE) 
+
+#### weight.T0 x weight.T1
+
+summary(data.wide$weight.T0 - data.wide$weight.T1)
+sd(data.wide$weight.T0 - data.wide$weight.T1, na.rm = TRUE)
+
+#### height
+
+summary(data.wide$height) 
+sd(data.wide$height, na.rm = TRUE) 
+
+#### BMI.T0
+
+data.wide$BMI.T0 <- data.wide$weight.T0 / ((data.wide$height * 10 ** -2) ** 2) 
+
+summary(data.wide$BMI.T0) 
+sd(data.wide$BMI.T0, na.rm = TRUE) 
+
+data.wide$BMI.c.T0 <- data.wide$BMI.T0 - 25
+
+#### BMI.T1
+
+data.wide$BMI.T1 <- data.wide$weight.T1 / ((data.wide$height * 10 ** -2) ** 2) 
+
+summary(data.wide$BMI.T1) 
+sd(data.wide$BMI.T1, na.rm = TRUE) 
+
+data.wide$BMI.c.T1 <- data.wide$BMI.T1 - 25
+
+#### BMI.T0 x BMI.T1
+
+summary(data.wide$BMI.T0 - data.wide$BMI.T1)
+sd(data.wide$BMI.T0 - data.wide$BMI.T1, na.rm = TRUE)
+
+#### SBP.T0
+
+summary(data.wide$SBP.T0) 
+sd(data.wide$SBP.T0, na.rm = TRUE) 
+
+data.wide$SBP.c.T0 <- data.wide$SBP.T0 - 120
+
+#### SBP.T1
+
+summary(data.wide$SBP.T1) 
+sd(data.wide$SBP.T1, na.rm = TRUE) 
+
+data.wide$SBP.c.T1 <- data.wide$SBP.T1 - 120
+
+#### SBP.T0 x SBP.T1
+
+summary(data.wide$SBP.T0 - data.wide$SBP.T1)
+sd(data.wide$SBP.T0 - data.wide$SBP.T1, na.rm = TRUE)
+
+#### DBP.T0
+
+summary(data.wide$DBP.T0) 
+sd(data.wide$DBP.T0, na.rm = TRUE) 
+
+data.wide$DBP.c.T0 <- data.wide$DBP.T0 - 80
+
+#### DBP.T1
+
+summary(data.wide$DBP.T1) 
+sd(data.wide$DBP.T1, na.rm = TRUE) 
+
+data.wide$DBP.c.T1 <- data.wide$DBP.T1 - 80
+
+#### DBP.T0 x DBP.T1
+
+summary(data.wide$DBP.T0 - data.wide$DBP.T1)
+sd(data.wide$DBP.T0 - data.wide$DBP.T1, na.rm = TRUE)
+
+#### SBP_minus_DBP.T0
+
+data.wide$SBP_minus_DBP.T0 <- data.wide$SBP.T0 - data.wide$DBP.T0
+
+summary(data.wide$SBP_minus_DBP.T0) 
+sd(data.wide$SBP_minus_DBP.T0, na.rm = TRUE) 
+
+#### SBP_minus_DBP.T1
+
+data.wide$SBP_minus_DBP.T1 <- data.wide$SBP.T1 - data.wide$DBP.T1
+
+summary(data.wide$SBP_minus_DBP.T1) 
+sd(data.wide$SBP_minus_DBP.T1, na.rm = TRUE) 
+
+#### SBP_minus_DBP.T0 x SBP_minus_DBP.T1
+
+summary(data.wide$SBP_minus_DBP.T0 - data.wide$SBP_minus_DBP.T1)
+sd(data.wide$SBP_minus_DBP.T0 - data.wide$SBP_minus_DBP.T1, na.rm = TRUE)
+
+#### HR.T0
+
+summary(data.wide$HR.T0) 
+sd(data.wide$HR.T0, na.rm = TRUE) 
+
+data.wide$HR.c.T0 <- data.wide$HR.T0 - 80
+
+#### HR.T1
+
+summary(data.wide$HR.T1)
+sd(data.wide$HR.T1, na.rm = TRUE) 
+
+data.wide$HR.c.T1 <- data.wide$HR.T1 - 80
+
+#### HR.T0 x HR.T1
+
+summary(data.wide$HR.T0 - data.wide$HR.T1)
+sd(data.wide$HR.T0 - data.wide$HR.T1, na.rm = TRUE)
+
+#### S3.T0
+
+table(data.wide$S3.T0, exclude = NULL)
+prop.table(table(data.wide$S3.T0, exclude = NULL))
+
+#### S3.T1
+
+table(data.wide$S3.T1, exclude = NULL)
+prop.table(table(data.wide$S3.T1, exclude = NULL)) 
+
+#### S3.T0 x S3.T1
+
+table(data.wide$S3.T0, data.wide$S3.T1, exclude = NULL)
+prop.table(table(data.wide$S3.T0, data.wide$S3.T1, exclude = NULL))
+
+#### hepatomegaly.T0
+
+table(data.wide$hepatomegaly.T0, exclude = NULL)
+prop.table(table(data.wide$hepatomegaly.T0, exclude = NULL))
+
+#### hepatomegaly.T1
+
+table(data.wide$hepatomegaly.T1, exclude = NULL)
+prop.table(table(data.wide$hepatomegaly.T1, exclude = NULL)) 
+
+#### hepatomegaly.T0 x hepatomegaly.T1
+
+table(data.wide$hepatomegaly.T0, data.wide$hepatomegaly.T1, exclude = NULL)
+prop.table(table(data.wide$hepatomegaly.T0, data.wide$hepatomegaly.T1, exclude = NULL))
+
+#### JV.scale.T0
+
+table(data.wide$JV.scale.T0, exclude = NULL)
+prop.table(table(data.wide$JV.scale.T0, exclude = NULL)) 
+
+#### JV.scale.T1
+
+table(data.wide$JV.scale.T1, exclude = NULL)
+prop.table(table(data.wide$JV.scale.T1, exclude = NULL)) 
+
+#### JV.scale.T0 x JV.scale.T1
+
+table(data.wide$JV.scale.T0, data.wide$JV.scale.T1, exclude = NULL)
+prop.table(table(data.wide$JV.scale.T0, data.wide$JV.scale.T1, exclude = NULL))
+
+#### rales.scale.T0
+
+table(data.wide$rales.scale.T0, exclude = NULL)
+prop.table(table(data.wide$rales.scale.T0, exclude = NULL)) 
+
+#### rales.scale.T1
+
+table(data.wide$rales.scale.T1, exclude = NULL)
+prop.table(table(data.wide$rales.scale.T1, exclude = NULL)) 
+
+#### rales.scale.T0 x rales.scale.T1
+
+table(data.wide$rales.scale.T0, data.wide$rales.scale.T1, exclude = NULL)
+prop.table(table(data.wide$rales.scale.T0, data.wide$rales.scale.T1, exclude = NULL))
+
+#### Cr.T0
+
+summary(data.wide$Cr.T0) 
+sd(data.wide$Cr.T0, na.rm = TRUE) 
+
+data.wide$Cr.c.T0 <- data.wide$Cr.T0 - 90
+
+#### Cr.T1
+
+summary(data.wide$Cr.T1) 
+sd(data.wide$Cr.T1, na.rm = TRUE) 
+
+data.wide$Cr.c.T1 <- data.wide$Cr.T1 - 90
+
+#### Cr.T0 x Cr.T1
+
+summary(data.wide$Cr.T0 - data.wide$Cr.T1)
+sd(data.wide$Cr.T0 - data.wide$Cr.T1, na.rm = TRUE)
+
+#### T_group
+
+table(data.wide$T_group, exclude = NULL)
+prop.table(table(data.wide$T_group, exclude = NULL))
+
+### SUBSET UP-TITRATION ----
+
+data.wide.up <- subset(data.wide, recom.T1 != -1)
+
+#### male
+
+table(data.wide.up$male, exclude = NULL)
+prop.table(table(data.wide.up$male, exclude = NULL))
+
+#### age.T0
+
+summary(data.wide.up$age.T0)
+sd(data.wide.up$age.T0, na.rm = TRUE)
+
+#### age.T1
+
+summary(data.wide.up$age.T1)
+sd(data.wide.up$age.T1, na.rm = TRUE)
+
+#### dose.T0
+
+table(data.wide.up$dose.T0, exclude = NULL)
+summary(data.wide.up$dose.T0)
+sd(data.wide.up$dose.T0, na.rm = TRUE)
+
+#### dose.T1
+
+table(data.wide.up$dose.T1, exclude = NULL)
+summary(data.wide.up$dose.T1)
+sd(data.wide.up$dose.T1, na.rm = TRUE)
+
+#### dose.T0 x dose.T1
+
+table(data.wide.up$dose.T0 - data.wide.up$dose.T1, exclude = NULL)
+summary(data.wide.up$dose.T0 - data.wide.up$dose.T1)
+sd(data.wide.up$dose.T0 - data.wide.up$dose.T1, na.rm = TRUE)
+
+#### NYHA.scale.T0
+
+table(data.wide.up$NYHA.scale.T0, exclude = NULL)
+prop.table(table(data.wide.up$NYHA.scale.T0, exclude = NULL))
+
+#### NYHA.scale.T1
+
+table(data.wide.up$NYHA.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$NYHA.scale.T1, exclude = NULL))
+
+#### NYHA.scale.T0 x NYHA.scale.T1
+
+table(data.wide.up$NYHA.scale.T0, data.wide.up$NYHA.scale.T1, exclude = NULL) 
+prop.table(table(data.wide.up$NYHA.scale.T0, data.wide.up$NYHA.scale.T1, exclude = NULL))
+
+#### NYHA.nom.up.T0
+
+data.wide.up$NYHA.nom.up.T0 <- ifelse(data.wide.up$NYHA.scale.T0 == "2",
+                                      1,
+                                      NA)
+data.wide.up$NYHA.nom.up.T0 <- ifelse(data.wide.up$NYHA.scale.T0 == "3",
+                                      2,
+                                      data.wide.up$NYHA.nom.up.T0)
+data.wide.up$NYHA.nom.up.T0 <- ifelse((data.wide.up$NYHA.scale.T0 == "4")
+                                      |
+                                      (data.wide.up$NYHA.scale.T0 == "5")
+                                      |
+                                      (data.wide.up$NYHA.scale.T0 == "6"),
+                                      3,
+                                      data.wide.up$NYHA.nom.up.T0)
+data.wide.up$NYHA.nom.up.T0 <- ordered(data.wide.up$NYHA.nom.up.T0)
+
+table(data.wide.up$NYHA.nom.up.T0, exclude = NULL)
+prop.table(table(data.wide.up$NYHA.nom.up.T0, exclude = NULL))
+
+#### NYHA.nom.up.T1
+
+data.wide.up$NYHA.nom.up.T1 <- ifelse((data.wide.up$NYHA.scale.T1 == "0")
+                                      |
+                                      (data.wide.up$NYHA.scale.T1 == "1")
+                                      |
+                                      (data.wide.up$NYHA.scale.T1 == "2"),
+                                      1,
+                                      NA)
+data.wide.up$NYHA.nom.up.T1 <- ifelse(data.wide.up$NYHA.scale.T1 == "3",
+                                      2,
+                                      data.wide.up$NYHA.nom.up.T1)
+data.wide.up$NYHA.nom.up.T1 <- ifelse((data.wide.up$NYHA.scale.T1 == "4")
+                                      |
+                                      (data.wide.up$NYHA.scale.T1 == "5")
+                                      |
+                                      (data.wide.up$NYHA.scale.T1 == "6"),
+                                      3,
+                                      data.wide.up$NYHA.nom.up.T1)
+data.wide.up$NYHA.nom.up.T1 <- ordered(data.wide.up$NYHA.nom.up.T1)
+
+table(data.wide.up$NYHA.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$NYHA.nom.up.T1, exclude = NULL))
+
+#### NYHA.nom.up.T0 x NYHA.nom.up.T1
+
+table(data.wide.up$NYHA.nom.up.T0, data.wide.up$NYHA.nom.up.T1, exclude = NULL) 
+prop.table(table(data.wide.up$NYHA.nom.up.T0, data.wide.up$NYHA.nom.up.T1, exclude = NULL))
+
+#### angina.T0
+
+table(data.wide.up$angina.T0, exclude = NULL)
+prop.table(table(data.wide.up$angina.T0, exclude = NULL)) 
+
+#### angina.T1
+
+table(data.wide.up$angina.T1, exclude = NULL)
+prop.table(table(data.wide.up$angina.T1, exclude = NULL)) 
+
+#### angina.T0 x angina.T1 
+
+table(data.wide.up$angina.T0, data.wide.up$angina.T1, exclude = NULL)
+prop.table(table(data.wide.up$angina.T0, data.wide.up$angina.T1, exclude = NULL))
+
+#### edema.scale.T0
+
+table(data.wide.up$edema.scale.T0, exclude = NULL)
+prop.table(table(data.wide.up$edema.scale.T0, exclude = NULL)) 
+
+#### edema.scale.T1
+
+table(data.wide.up$edema.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$edema.scale.T1, exclude = NULL)) 
+
+#### edema.scale.T0 x edema.scale.T1
+
+table(data.wide.up$edema.scale.T0, data.wide.up$edema.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$edema.scale.T0, data.wide.up$edema.scale.T1, exclude = NULL))
+
+#### edema.nom.up.T0
+
+data.wide.up$edema.nom.up.T0 <- ordered(data.wide.up$edema.scale.T0)
+
+table(data.wide.up$edema.nom.up.T0, exclude = NULL)
+prop.table(table(data.wide.up$edema.nom.up.T0, exclude = NULL))
+
+#### edema.nom.up.T1
+
+data.wide.up$edema.nom.up.T1 <- ordered(data.wide.up$edema.scale.T1)
+
+table(data.wide.up$edema.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$edema.nom.up.T1, exclude = NULL)) 
+
+#### edema.nom.up.T0 x edema.nom.up.T1
+
+table(data.wide.up$edema.nom.up.T0, data.wide.up$edema.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$edema.nom.up.T0, data.wide.up$edema.nom.up.T1, exclude = NULL))
+
+#### orthopnea.scale.T0
+
+table(data.wide.up$orthopnea.scale.T0, exclude = NULL)
+prop.table(table(data.wide.up$orthopnea.scale.T0, exclude = NULL)) 
+
+#### orthopnea.scale.T1
+
+table(data.wide.up$orthopnea.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$orthopnea.scale.T1, exclude = NULL)) 
+
+#### orthopnea.scale.T0 x orthopnea.scale.T1
+
+table(data.wide.up$orthopnea.scale.T0, data.wide.up$orthopnea.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$orthopnea.scale.T0, data.wide.up$orthopnea.scale.T1, exclude = NULL))
+
+#### orthopnea.nom.up.T0
+
+data.wide.up$orthopnea.nom.up.T0 <- ifelse(data.wide.up$orthopnea.scale.T0 == "0",
+                                           0,
+                                           NA)
+data.wide.up$orthopnea.nom.up.T0 <- ifelse(data.wide.up$orthopnea.scale.T0 == "1",
+                                           1,
+                                           data.wide.up$orthopnea.nom.up.T0)
+data.wide.up$orthopnea.nom.up.T0 <- ifelse((data.wide.up$orthopnea.scale.T0 == "2")
+                                           |
+                                           (data.wide.up$orthopnea.scale.T0 == "3"),
+                                           2,
+                                           data.wide.up$orthopnea.nom.up.T0)
+data.wide.up$orthopnea.nom.up.T0 <- ordered(data.wide.up$orthopnea.nom.up.T0)
+
+table(data.wide.up$orthopnea.nom.up.T0, exclude = NULL)
+prop.table(table(data.wide.up$orthopnea.nom.up.T0, exclude = NULL)) 
+
+#### orthopnea.nom.up.T1
+
+data.wide.up$orthopnea.nom.up.T1 <- ifelse(data.wide.up$orthopnea.scale.T1 == "0",
+                                           0,
+                                           NA)
+data.wide.up$orthopnea.nom.up.T1 <- ifelse(data.wide.up$orthopnea.scale.T1 == "1",
+                                           1,
+                                           data.wide.up$orthopnea.nom.up.T1)
+data.wide.up$orthopnea.nom.up.T1 <- ifelse((data.wide.up$orthopnea.scale.T1 == "2")
+                                           |
+                                           (data.wide.up$orthopnea.scale.T1 == "3"),
+                                           2,
+                                           data.wide.up$orthopnea.nom.up.T1)
+data.wide.up$orthopnea.nom.up.T1 <- ordered(data.wide.up$orthopnea.nom.up.T1)
+
+table(data.wide.up$orthopnea.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$orthopnea.nom.up.T1, exclude = NULL)) 
+
+### orthopnea.nom.up.T0 x orthopnea.nom.up.T1
+
+table(data.wide.up$orthopnea.nom.up.T0, data.wide.up$orthopnea.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$orthopnea.nom.up.T0, data.wide.up$orthopnea.nom.up.T1, exclude = NULL))
+
+#### PND.scale.T0
+
+table(data.wide.up$PND.scale.T0, exclude = NULL)
+prop.table(table(data.wide.up$PND.scale.T0, exclude = NULL))
+
+#### PND.scale.T1
+
+table(data.wide.up$PND.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$PND.scale.T1, exclude = NULL))
+
+#### PND.scale.T0 x PND.scale.T1
+
+table(data.wide.up$PND.scale.T0, data.wide.up$PND.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$PND.scale.T0, data.wide.up$PND.scale.T1, exclude = NULL))
+
+#### PND.nom.up.T0
+
+data.wide.up$PND.nom.up.T0 <- ifelse(data.wide.up$PND.scale.T0 == "0",
+                                     0,
+                                     NA)
+data.wide.up$PND.nom.up.T0 <- ifelse(data.wide.up$PND.scale.T0 == "1",
+                                     1,
+                                     data.wide.up$PND.nom.up.T0)
+data.wide.up$PND.nom.up.T0 <- ifelse((data.wide.up$PND.scale.T0 == "2")
+                                     |
+                                     (data.wide.up$PND.scale.T0 == "3"),
+                                     2,
+                                     data.wide.up$PND.nom.up.T0)
+data.wide.up$PND.nom.up.T0 <- ordered(data.wide.up$PND.nom.up.T0)
+
+table(data.wide.up$PND.nom.up.T0, exclude = NULL)
+prop.table(table(data.wide.up$PND.nom.up.T0, exclude = NULL))
+
+#### PND.nom.up.T1
+
+data.wide.up$PND.nom.up.T1 <- ifelse(data.wide.up$PND.scale.T1 == "0",
+                                     0,
+                                     NA)
+data.wide.up$PND.nom.up.T1 <- ifelse(data.wide.up$PND.scale.T1 == "1",
+                                     1,
+                                     data.wide.up$PND.nom.up.T1)
+data.wide.up$PND.nom.up.T1 <- ifelse((data.wide.up$PND.scale.T1 == "2")
+                                     |
+                                     (data.wide.up$PND.scale.T1 == "3"),
+                                     2,
+                                     data.wide.up$PND.nom.up.T1)
+data.wide.up$PND.nom.up.T1 <- ordered(data.wide.up$PND.nom.up.T1)
+
+table(data.wide.up$PND.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$PND.nom.up.T1, exclude = NULL))
+
+#### PND.nom.up.T0 x PND.nom.up.T1
+
+table(data.wide.up$PND.nom.up.T0, data.wide.up$PND.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$PND.nom.up.T0, data.wide.up$PND.nom.up.T1, exclude = NULL))
+
+#### cough.scale.T0
+
+table(data.wide.up$cough.scale.T0, exclude = NULL)
+prop.table(table(data.wide.up$cough.scale.T0, exclude = NULL)) 
+
+#### cough.scale.T1
+
+table(data.wide.up$cough.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$cough.scale.T1, exclude = NULL)) 
+
+#### cough.scale.T0 x cough.scale.T1
+
+table(data.wide.up$cough.scale.T0, data.wide.up$cough.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$cough.scale.T0, data.wide.up$cough.scale.T1, exclude = NULL))
+
+#### cough.nom.up.T0
+
+data.wide.up$cough.nom.up.T0 <- ifelse(data.wide.up$cough.scale.T0 == "0",
+                                       0,
+                                       NA)
+data.wide.up$cough.nom.up.T0 <- ifelse(data.wide.up$cough.scale.T0 == "1",
+                                       1,
+                                       data.wide.up$cough.nom.up.T0)
+data.wide.up$cough.nom.up.T0 <- ifelse((data.wide.up$cough.scale.T0 == "2") 
+                                       |
+                                       (data.wide.up$cough.scale.T0 == "3"),
+                                       2,
+                                       data.wide.up$cough.nom.up.T0)
+data.wide.up$cough.nom.up.T0 <- ordered(data.wide.up$cough.nom.up.T0)
+
+table(data.wide.up$cough.nom.up.T0, exclude = NULL)
+prop.table(table(data.wide.up$cough.nom.up.T0, exclude = NULL)) 
+
+#### cough.nom.up.T1
+
+data.wide.up$cough.nom.up.T1 <- ifelse(data.wide.up$cough.scale.T1 == "0",
+                                       0,
+                                       NA)
+data.wide.up$cough.nom.up.T1 <- ifelse(data.wide.up$cough.scale.T1 == "1",
+                                       1,
+                                       data.wide.up$cough.nom.up.T1)
+data.wide.up$cough.nom.up.T1 <- ifelse((data.wide.up$cough.scale.T1 == "2") 
+                                       |
+                                       (data.wide.up$cough.scale.T1 == "3"),
+                                       2,
+                                       data.wide.up$cough.nom.up.T1)
+data.wide.up$cough.nom.up.T1 <- ordered(data.wide.up$cough.nom.up.T1)
+
+table(data.wide.up$cough.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$cough.nom.up.T1, exclude = NULL)) 
+
+### cough.nom.up.T0 x cough.nom.up.T1
+
+table(data.wide.up$cough.nom.up.T0, data.wide.up$cough.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$cough.nom.up.T0, data.wide.up$cough.nom.up.T1, exclude = NULL))
+
+#### nocturia.scale.T0
+
+table(data.wide.up$nocturia.scale.T0, exclude = NULL)
+prop.table(table(data.wide.up$nocturia.scale.T0, exclude = NULL)) 
+
+#### nocturia.scale.T1
+
+table(data.wide.up$nocturia.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$nocturia.scale.T1, exclude = NULL)) 
+
+#### nocturia.scale.T0 x nocturia.scale.T1
+
+table(data.wide.up$nocturia.scale.T0, data.wide.up$nocturia.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$nocturia.scale.T0, data.wide.up$nocturia.scale.T1, exclude = NULL))
+
+#### nocturia.nom.up.T0
+
+data.wide.up$nocturia.nom.up.T0 <- ordered(data.wide.up$nocturia.scale.T0)
+
+table(data.wide.up$nocturia.nom.up.T0, exclude = NULL)
+prop.table(table(data.wide.up$nocturia.nom.up.T0, exclude = NULL)) 
+
+#### nocturia.nom.up.T1
+
+data.wide.up$nocturia.nom.up.T1 <- ordered(data.wide.up$nocturia.scale.T1)
+
+table(data.wide.up$nocturia.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$nocturia.nom.up.T1, exclude = NULL))
+
+#### nocturia.nom.up.T0 x nocturia.nom.up.T1
+
+table(data.wide.up$nocturia.nom.up.T0, data.wide.up$nocturia.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$nocturia.nom.up.T0, data.wide.up$nocturia.nom.up.T1, exclude = NULL))
+
+#### dizziness.scale.T0
+
+table(data.wide.up$dizziness.scale.T0, exclude = NULL)
+prop.table(table(data.wide.up$dizziness.scale.T0, exclude = NULL))
+
+#### dizziness.scale.T1
+
+table(data.wide.up$dizziness.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$dizziness.scale.T1, exclude = NULL)) 
+
+#### dizziness.scale.T0 x dizziness.scale.T1
+
+table(data.wide.up$dizziness.scale.T0, data.wide.up$dizziness.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$dizziness.scale.T0, data.wide.up$dizziness.scale.T1, exclude = NULL))
+
+#### dizziness.nom.up.T0
+
+data.wide.up$dizziness.nom.up.T0 <- ifelse(data.wide.up$dizziness.scale.T0 == "0",
+                                           0,
+                                           NA)
+data.wide.up$dizziness.nom.up.T0 <- ifelse(data.wide.up$dizziness.scale.T0 == "1",
+                                           1,
+                                           data.wide.up$dizziness.nom.up.T0)
+data.wide.up$dizziness.nom.up.T0 <- ifelse((data.wide.up$dizziness.scale.T0 == "2")
+                                           |
+                                           (data.wide.up$dizziness.scale.T0 == "3"),
+                                           2,
+                                           data.wide.up$dizziness.nom.up.T0)
+data.wide.up$dizziness.nom.up.T0 <- ordered(data.wide.up$dizziness.nom.up.T0)
+
+table(data.wide.up$dizziness.nom.up.T0, exclude = NULL)
+prop.table(table(data.wide.up$dizziness.nom.up.T0, exclude = NULL)) 
+
+#### dizziness.nom.up.T1
+
+data.wide.up$dizziness.nom.up.T1 <- ifelse(data.wide.up$dizziness.scale.T1 == "0",
+                                           0,
+                                           NA)
+data.wide.up$dizziness.nom.up.T1 <- ifelse(data.wide.up$dizziness.scale.T1 == "1",
+                                           1,
+                                           data.wide.up$dizziness.nom.up.T1)
+data.wide.up$dizziness.nom.up.T1 <- ifelse((data.wide.up$dizziness.scale.T1 == "2")
+                                           |
+                                           (data.wide.up$dizziness.scale.T1 == "3"),
+                                           2,
+                                           data.wide.up$dizziness.nom.up.T1)
+data.wide.up$dizziness.nom.up.T1 <- ordered(data.wide.up$dizziness.nom.up.T1)
+
+table(data.wide.up$dizziness.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$dizziness.nom.up.T1, exclude = NULL)) 
+
+#### dizziness.nom.up.T0 x dizziness.nom.up.T1
+
+table(data.wide.up$dizziness.nom.up.T0, data.wide.up$dizziness.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$dizziness.nom.up.T0, data.wide.up$dizziness.nom.up.T1, exclude = NULL))
+
+#### orthostasis.scale.T0
+
+table(data.wide.up$orthostasis.scale.T0, exclude = NULL)
+prop.table(table(data.wide.up$orthostasis.scale.T0, exclude = NULL)) 
+
+#### orthostasis.scale.T1
+
+table(data.wide.up$orthostasis.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$orthostasis.scale.T1, exclude = NULL)) 
+
+#### orthostasis.scale.T0 x orthostasis.scale.T1
+
+table(data.wide.up$orthostasis.scale.T0, data.wide.up$orthostasis.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$orthostasis.scale.T0, data.wide.up$orthostasis.scale.T1, exclude = NULL))
+
+#### orthostasis.nom.up.T0
+
+data.wide.up$orthostasis.nom.up.T0 <- ifelse(data.wide.up$orthostasis.scale.T0 == "0",
+                                             0,
+                                             NA)
+data.wide.up$orthostasis.nom.up.T0 <- ifelse(data.wide.up$orthostasis.scale.T0 == "1",
+                                             1,
+                                             data.wide.up$orthostasis.nom.up.T0)
+data.wide.up$orthostasis.nom.up.T0 <- ifelse((data.wide.up$orthostasis.scale.T0 == "2")
+                                             |
+                                             (data.wide.up$orthostasis.scale.T0 == "3"),
+                                             2,
+                                             data.wide.up$orthostasis.nom.up.T0)
+data.wide.up$orthostasis.nom.up.T0 <- ordered(data.wide.up$orthostasis.nom.up.T0)
+
+table(data.wide.up$orthostasis.nom.up.T0, exclude = NULL)
+prop.table(table(data.wide.up$orthostasis.nom.up.T0, exclude = NULL)) 
+
+#### orthostasis.nom.up.T1
+
+data.wide.up$orthostasis.nom.up.T1 <- ifelse(data.wide.up$orthostasis.scale.T1 == "0",
+                                             0,
+                                             NA)
+data.wide.up$orthostasis.nom.up.T1 <- ifelse(data.wide.up$orthostasis.scale.T1 == "1",
+                                             1,
+                                             data.wide.up$orthostasis.nom.up.T1)
+data.wide.up$orthostasis.nom.up.T1 <- ifelse((data.wide.up$orthostasis.scale.T1 == "2")
+                                             |
+                                             (data.wide.up$orthostasis.scale.T1 == "3"),
+                                             2,
+                                             data.wide.up$orthostasis.nom.up.T1)
+data.wide.up$orthostasis.nom.up.T1 <- ordered(data.wide.up$orthostasis.nom.up.T1)
+
+table(data.wide.up$orthostasis.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$orthostasis.nom.up.T1, exclude = NULL)) 
+
+#### orthostasis.nom.up.T0 x orthostasis.nom.up.T1
+
+table(data.wide.up$orthostasis.nom.up.T0, data.wide.up$orthostasis.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$orthostasis.nom.up.T0, data.wide.up$orthostasis.nom.up.T1, exclude = NULL))
+
+#### syncope.T0
+
+table(data.wide.up$syncope.T0, exclude = NULL)
+prop.table(table(data.wide.up$syncope.T0, exclude = NULL)) 
+
+#### syncope.T1
+
+table(data.wide.up$syncope.T1, exclude = NULL)
+prop.table(table(data.wide.up$syncope.T1, exclude = NULL)) # < 5%
+
+#### syncope.T0 x syncope.T1
+
+table(data.wide.up$syncope.T0, data.wide.up$syncope.T1, exclude = NULL)
+prop.table(table(data.wide.up$syncope.T0, data.wide.up$syncope.T1, exclude = NULL))
+
+#### weight.T0
+
+summary(data.wide.up$weight.T0) 
+sd(data.wide.up$weight.T0, na.rm = TRUE) 
+
+#### weight.T1
+
+summary(data.wide.up$weight.T1) 
+sd(data.wide.up$weight.T1, na.rm = TRUE) 
+
+#### weight.T0 x weight.T1
+
+summary(data.wide.up$weight.T0 - data.wide.up$weight.T1)
+sd(data.wide.up$weight.T0 - data.wide.up$weight.T1, na.rm = TRUE)
+
+#### height
+
+summary(data.wide.up$height) 
+sd(data.wide.up$height, na.rm = TRUE) 
+
+#### BMI.T0
+
+summary(data.wide.up$BMI.T0) 
+sd(data.wide.up$BMI.T0, na.rm = TRUE) 
+
+#### BMI.T1
+
+summary(data.wide.up$BMI.T1) 
+sd(data.wide.up$BMI.T1, na.rm = TRUE) 
+
+#### BMI.T0 x BMI.T1
+
+summary(data.wide.up$BMI.T0 - data.wide.up$BMI.T1)
+sd(data.wide.up$BMI.T0 - data.wide.up$BMI.T1, na.rm = TRUE)
+
+#### SBP.T0
+
+summary(data.wide.up$SBP.T0) 
+sd(data.wide.up$SBP.T0, na.rm = TRUE) 
+
+#### SBP.T1
+
+summary(data.wide.up$SBP.T1) 
+sd(data.wide.up$SBP.T1, na.rm = TRUE) 
+
+#### SBP.T0 x SBP.T1
+
+summary(data.wide.up$SBP.T0 - data.wide.up$SBP.T1)
+sd(data.wide.up$SBP.T0 - data.wide.up$SBP.T1, na.rm = TRUE)
+
+#### DBP.T0
+
+summary(data.wide.up$DBP.T0) 
+sd(data.wide.up$DBP.T0, na.rm = TRUE) 
+
+#### DBP.T1
+
+summary(data.wide.up$DBP.T1) 
+sd(data.wide.up$DBP.T1, na.rm = TRUE) 
+
+#### DBP.T0 x DBP.T1
+
+summary(data.wide.up$DBP.T0 - data.wide.up$DBP.T1)
+sd(data.wide.up$DBP.T0 - data.wide.up$DBP.T1, na.rm = TRUE)
+
+#### SBP_minus_DBP.T0
+
+summary(data.wide.up$SBP_minus_DBP.T0) 
+sd(data.wide.up$SBP_minus_DBP.T0, na.rm = TRUE) 
+
+#### SBP_minus_DBP.T1
+
+data.wide$SBP_minus_DBP.T1 <- data.wide$SBP.T1 - data.wide$DBP.T1
+
+summary(data.wide.up$SBP_minus_DBP.T1) 
+sd(data.wide.up$SBP_minus_DBP.T1, na.rm = TRUE) 
+
+#### SBP_minus_DBP.T0 x SBP_minus_DBP.T1
+
+summary(data.wide.up$SBP_minus_DBP.T0 - data.wide.up$SBP_minus_DBP.T1)
+sd(data.wide.up$SBP_minus_DBP.T0 - data.wide.up$SBP_minus_DBP.T1, na.rm = TRUE)
+
+#### HR.T0
+
+summary(data.wide.up$HR.T0) 
+sd(data.wide.up$HR.T0, na.rm = TRUE) 
+
+#### HR.T1
+
+summary(data.wide.up$HR.T1)
+sd(data.wide.up$HR.T1, na.rm = TRUE) 
+
+#### HR.T0 x HR.T1
+
+summary(data.wide.up$HR.T0 - data.wide.up$HR.T1)
+sd(data.wide.up$HR.T0 - data.wide.up$HR.T1, na.rm = TRUE)
+
+#### S3.T0
+
+table(data.wide.up$S3.T0, exclude = NULL)
+prop.table(table(data.wide.up$S3.T0, exclude = NULL))
+
+#### S3.T1
+
+table(data.wide.up$S3.T1, exclude = NULL)
+prop.table(table(data.wide.up$S3.T1, exclude = NULL)) 
+
+#### S3.T0 x S3.T1
+
+table(data.wide.up$S3.T0, data.wide.up$S3.T1, exclude = NULL)
+prop.table(table(data.wide.up$S3.T0, data.wide.up$S3.T1, exclude = NULL))
+
+#### hepatomegaly.T0
+
+table(data.wide.up$hepatomegaly.T0, exclude = NULL)
+prop.table(table(data.wide.up$hepatomegaly.T0, exclude = NULL))
+
+#### hepatomegaly.T1
+
+table(data.wide.up$hepatomegaly.T1, exclude = NULL)
+prop.table(table(data.wide.up$hepatomegaly.T1, exclude = NULL)) 
+
+#### hepatomegaly.T0 x hepatomegaly.T1
+
+table(data.wide.up$hepatomegaly.T0, data.wide.up$hepatomegaly.T1, exclude = NULL)
+prop.table(table(data.wide.up$hepatomegaly.T0, data.wide.up$hepatomegaly.T1, exclude = NULL))
+
+#### JV.scale.T0
+
+table(data.wide.up$JV.scale.T0, exclude = NULL)
+prop.table(table(data.wide.up$JV.scale.T0, exclude = NULL)) 
+
+#### JV.scale.T1
+
+table(data.wide.up$JV.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$JV.scale.T1, exclude = NULL)) 
+
+#### JV.scale.T0 x JV.scale.T1
+
+table(data.wide.up$JV.scale.T0, data.wide.up$JV.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$JV.scale.T0, data.wide.up$JV.scale.T1, exclude = NULL))
+
+#### JV.nom.up.T0
+
+data.wide.up$JV.nom.up.T0 <- ordered(data.wide.up$JV.scale.T0)
+
+table(data.wide.up$JV.nom.up.T0, exclude = NULL)
+prop.table(table(data.wide.up$JV.nom.up.T0, exclude = NULL)) 
+
+#### JV.nom.up.T1
+
+data.wide.up$JV.nom.up.T1 <- ordered(data.wide.up$JV.scale.T1)
+
+table(data.wide.up$JV.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$JV.nom.up.T1, exclude = NULL))
+
+#### JV.nom.up.T0 x JV.nom.up.T1
+
+table(data.wide.up$JV.nom.up.T0, data.wide.up$JV.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$JV.nom.up.T0, data.wide.up$JV.nom.up.T1, exclude = NULL))
+
+#### rales.scale.T0
+
+table(data.wide.up$rales.scale.T0, exclude = NULL)
+prop.table(table(data.wide.up$rales.scale.T0, exclude = NULL)) 
+
+#### rales.scale.T1
+
+table(data.wide.up$rales.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$rales.scale.T1, exclude = NULL)) 
+
+#### rales.scale.T0 x rales.scale.T1
+
+table(data.wide.up$rales.scale.T0, data.wide.up$rales.scale.T1, exclude = NULL)
+prop.table(table(data.wide.up$rales.scale.T0, data.wide.up$rales.scale.T1, exclude = NULL))
+
+#### rales.nom.up.T0
+
+data.wide.up$rales.nom.up.T0 <- ifelse(data.wide.up$rales.scale.T0 == "0",
+                                       0,
+                                       NA)
+data.wide.up$rales.nom.up.T0 <- ifelse((data.wide.up$rales.scale.T0 == "1")
+                                       |
+                                       (data.wide.up$rales.scale.T0 == "2")
+                                       |
+                                       (data.wide.up$rales.scale.T0 == "3"),
+                                       1,
+                                       data.wide.up$rales.nom.up.T0)
+data.wide.up$rales.nom.up.T0 <- factor(data.wide.up$rales.nom.up.T0, ordered = FALSE) 
+
+table(data.wide.up$rales.nom.up.T0, exclude = NULL)
+prop.table(table(data.wide.up$rales.nom.up.T0, exclude = NULL))
+
+#### rales.nom.up.T1
+
+data.wide.up$rales.nom.up.T1 <- ifelse(data.wide.up$rales.scale.T1 == "0",
+                                       0,
+                                       NA)
+data.wide.up$rales.nom.up.T1 <- ifelse((data.wide.up$rales.scale.T1 == "1")
+                                       |
+                                       (data.wide.up$rales.scale.T1 == "2")
+                                       |
+                                       (data.wide.up$rales.scale.T1 == "3"),
+                                       1,
+                                       data.wide.up$rales.nom.up.T1)
+data.wide.up$rales.nom.up.T1 <- factor(data.wide.up$rales.nom.up.T1, ordered = FALSE) 
+
+table(data.wide.up$rales.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$rales.nom.up.T1, exclude = NULL))
+
+#### rales.nom.up.T0 x rales.nom.up.T1
+
+table(data.wide.up$rales.nom.up.T0, data.wide.up$rales.nom.up.T1, exclude = NULL)
+prop.table(table(data.wide.up$rales.nom.up.T0, data.wide.up$rales.nom.up.T1, exclude = NULL))
+
+#### Cr.T0
+
+summary(data.wide.up$Cr.T0) 
+sd(data.wide.up$Cr.T0, na.rm = TRUE) 
+
+#### Cr.T1
+
+summary(data.wide.up$Cr.T1) 
+sd(data.wide.up$Cr.T1, na.rm = TRUE) 
+
+#### Cr.T0 x Cr.T1
+
+summary(data.wide.up$Cr.T0 - data.wide.up$Cr.T1)
+sd(data.wide.up$Cr.T0 - data.wide.up$Cr.T1, na.rm = TRUE)
+
+#### T_group
+
+table(data.wide.up$T_group, exclude = NULL)
+prop.table(table(data.wide.up$T_group, exclude = NULL))
+
+### SUBSET DOWN-TITRATION ----
+
+data.wide.down <- subset(data.wide, recom.T1 != 1)
+
+#### male
+
+table(data.wide.down$male, exclude = NULL)
+prop.table(table(data.wide.down$male, exclude = NULL))
+
+#### age.T0
+
+summary(data.wide.down$age.T0)
+sd(data.wide.down$age.T0, na.rm = TRUE)
+
+#### age.T1
+
+summary(data.wide.down$age.T1)
+sd(data.wide.down$age.T1, na.rm = TRUE)
+
+#### dose.T0
+
+table(data.wide.down$dose.T0, exclude = NULL)
+summary(data.wide.down$dose.T0)
+sd(data.wide.down$dose.T0, na.rm = TRUE)
+
+#### dose.T1
+
+table(data.wide.down$dose.T1, exclude = NULL)
+summary(data.wide.down$dose.T1)
+sd(data.wide.down$dose.T1, na.rm = TRUE)
+
+#### dose.T0 x dose.T1
+
+table(data.wide.down$dose.T0 - data.wide.down$dose.T1, exclude = NULL)
+summary(data.wide.down$dose.T0 - data.wide.down$dose.T1)
+sd(data.wide.down$dose.T0 - data.wide.down$dose.T1, na.rm = TRUE)
+
+#### NYHA.scale.T0 
+
+table(data.wide.down$NYHA.scale.T0, exclude = NULL)
+prop.table(table(data.wide.down$NYHA.scale.T0, exclude = NULL))
+
+#### NYHA.scale.T1
+
+table(data.wide.down$NYHA.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$NYHA.scale.T1, exclude = NULL))
+
+#### NYHA.scale.T0 x NYHA.scale.T1
+
+table(data.wide.down$NYHA.scale.T0, data.wide.down$NYHA.scale.T1, exclude = NULL) 
+prop.table(table(data.wide.down$NYHA.scale.T0, data.wide.down$NYHA.scale.T1, exclude = NULL))
+
+#### NYHA.nom.down.T0
+
+data.wide.down$NYHA.nom.down.T0 <- ifelse(data.wide.down$NYHA.scale.T0 == "2",
+                                          1,
+                                          NA)
+data.wide.down$NYHA.nom.down.T0 <- ifelse(data.wide.down$NYHA.scale.T0 == "3",
+                                          2,
+                                          data.wide.down$NYHA.nom.down.T0)
+data.wide.down$NYHA.nom.down.T0 <- ifelse((data.wide.down$NYHA.scale.T0 == "4")
+                                          |
+                                          (data.wide.down$NYHA.scale.T0 == "5")
+                                          |
+                                          (data.wide.down$NYHA.scale.T0 == "6"),
+                                          3,
+                                          data.wide.down$NYHA.nom.down.T0)
+data.wide.down$NYHA.nom.down.T0 <- ordered(data.wide.down$NYHA.nom.down.T0)
+
+table(data.wide.down$NYHA.nom.down.T0, exclude = NULL)
+prop.table(table(data.wide.down$NYHA.nom.down.T0, exclude = NULL))
+
+#### NYHA.nom.down.T1
+
+data.wide.down$NYHA.nom.down.T1 <- ifelse(data.wide.down$NYHA.scale.T1 == "2",
+                                          1,
+                                          NA)
+data.wide.down$NYHA.nom.down.T1 <- ifelse(data.wide.down$NYHA.scale.T1 == "3",
+                                          2,
+                                          data.wide.down$NYHA.nom.down.T1)
+data.wide.down$NYHA.nom.down.T1 <- ifelse((data.wide.down$NYHA.scale.T1 == "4")
+                                          |
+                                          (data.wide.down$NYHA.scale.T1 == "5")
+                                          |
+                                          (data.wide.down$NYHA.scale.T1 == "6"),
+                                          3,
+                                          data.wide.down$NYHA.nom.down.T1)
+data.wide.down$NYHA.nom.down.T1 <- ordered(data.wide.down$NYHA.nom.down.T1)
+
+table(data.wide.down$NYHA.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$NYHA.nom.down.T1, exclude = NULL))
+
+#### NYHA.nom.down.T0 x NYHA.nom.down.T1
+
+table(data.wide.down$NYHA.nom.down.T0, data.wide.down$NYHA.nom.down.T1, exclude = NULL) 
+prop.table(table(data.wide.down$NYHA.nom.down.T0, data.wide.down$NYHA.nom.down.T1, exclude = NULL))
+
+#### angina.T0
+
+table(data.wide.down$angina.T0, exclude = NULL)
+prop.table(table(data.wide.down$angina.T0, exclude = NULL)) 
+
+#### angina.T1
+
+table(data.wide.down$angina.T1, exclude = NULL)
+prop.table(table(data.wide.down$angina.T1, exclude = NULL)) 
+
+#### angina.T0 x angina.T1
+
+table(data.wide.down$angina.T0, data.wide.down$angina.T1, exclude = NULL)
+prop.table(table(data.wide.down$angina.T0, data.wide.down$angina.T1, exclude = NULL))
+
+#### edema.scale.T0
+
+table(data.wide.down$edema.scale.T0, exclude = NULL)
+prop.table(table(data.wide.down$edema.scale.T0, exclude = NULL)) 
+
+#### edema.scale.T1
+
+table(data.wide.down$edema.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$edema.scale.T1, exclude = NULL)) 
+
+#### edema.scale.T0 x edema.scale.T1
+
+table(data.wide.down$edema.scale.T0, data.wide.down$edema.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$edema.scale.T0, data.wide.down$edema.scale.T1, exclude = NULL))
+
+#### edema.nom.down.T0
+
+data.wide.down$edema.nom.down.T0 <- ifelse(data.wide.down$edema.scale.T0 == "0",
+                                           0,
+                                           NA)
+data.wide.down$edema.nom.down.T0 <- ifelse(data.wide.down$edema.scale.T0 == "1",
+                                           1,
+                                           data.wide.down$edema.nom.down.T0)
+data.wide.down$edema.nom.down.T0 <- ifelse((data.wide.down$edema.scale.T0 == "2")
+                                           |
+                                           (data.wide.down$edema.scale.T0 == "3"),
+                                           2,
+                                           data.wide.down$edema.nom.down.T0)
+data.wide.down$edema.nom.down.T0 <- ordered(data.wide.down$edema.nom.down.T0)
+
+table(data.wide.down$edema.nom.down.T0, exclude = NULL)
+prop.table(table(data.wide.down$edema.nom.down.T0, exclude = NULL))
+
+#### edema.nom.down.T1
+
+data.wide.down$edema.nom.down.T1 <- ifelse(data.wide.down$edema.scale.T1 == "0",
+                                           0,
+                                           NA)
+data.wide.down$edema.nom.down.T1 <- ifelse(data.wide.down$edema.scale.T1 == "1",
+                                           1,
+                                           data.wide.down$edema.nom.down.T1)
+data.wide.down$edema.nom.down.T1 <- ifelse((data.wide.down$edema.scale.T1 == "2")
+                                           |
+                                           (data.wide.down$edema.scale.T1 == "3"),
+                                           2,
+                                           data.wide.down$edema.nom.down.T1)
+data.wide.down$edema.nom.down.T1 <- ordered(data.wide.down$edema.nom.down.T1)
+
+table(data.wide.down$edema.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$edema.nom.down.T1, exclude = NULL))
+
+#### edema.nom.down.T0 x edema.nom.down.T1
+
+table(data.wide.down$edema.nom.down.T0, data.wide.down$edema.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$edema.nom.down.T0, data.wide.down$edema.nom.down.T1, exclude = NULL))
+
+#### orthopnea.scale.T0
+
+table(data.wide.down$orthopnea.scale.T0, exclude = NULL)
+prop.table(table(data.wide.down$orthopnea.scale.T0, exclude = NULL)) 
+
+#### orthopnea.scale.T1
+
+table(data.wide.down$orthopnea.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$orthopnea.scale.T1, exclude = NULL)) 
+
+#### orthopnea.scale.T0 x orthopnea.scale.T1
+
+table(data.wide.down$orthopnea.scale.T0, data.wide.down$orthopnea.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$orthopnea.scale.T0, data.wide.down$orthopnea.scale.T1, exclude = NULL))
+
+#### orthopnea.nom.down.T0
+
+data.wide.down$orthopnea.nom.down.T0 <- ifelse(data.wide.down$orthopnea.scale.T0 == "0",
+                                               0,
+                                               NA)
+data.wide.down$orthopnea.nom.down.T0 <- ifelse(data.wide.down$orthopnea.scale.T0 == "1",
+                                               1,
+                                               data.wide.down$orthopnea.nom.down.T0)
+data.wide.down$orthopnea.nom.down.T0 <- ifelse((data.wide.down$orthopnea.scale.T0 == "2")
+                                               |
+                                               (data.wide.down$orthopnea.scale.T0 == "3"),
+                                               2,
+                                               data.wide.down$orthopnea.nom.down.T0)
+data.wide.down$orthopnea.nom.down.T0 <- ordered(data.wide.down$orthopnea.nom.down.T0)
+
+table(data.wide.down$orthopnea.nom.down.T0, exclude = NULL)
+prop.table(table(data.wide.down$orthopnea.nom.down.T0, exclude = NULL)) 
+
+#### orthopnea.nom.down.T1
+
+data.wide.down$orthopnea.nom.down.T1 <- ifelse(data.wide.down$orthopnea.scale.T1 == "0",
+                                               0,
+                                               NA)
+data.wide.down$orthopnea.nom.down.T1 <- ifelse(data.wide.down$orthopnea.scale.T1 == "1",
+                                               1,
+                                               data.wide.down$orthopnea.nom.down.T1)
+data.wide.down$orthopnea.nom.down.T1 <- ifelse((data.wide.down$orthopnea.scale.T1 == "2")
+                                               |
+                                               (data.wide.down$orthopnea.scale.T1 == "3"),
+                                               2,
+                                               data.wide.down$orthopnea.nom.down.T1)
+data.wide.down$orthopnea.nom.down.T1 <- ordered(data.wide.down$orthopnea.nom.down.T1)
+
+table(data.wide.down$orthopnea.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$orthopnea.nom.down.T1, exclude = NULL)) 
+
+#### orthopnea.nom.down.T0 x orthopnea.nom.down.T1
+
+table(data.wide.down$orthopnea.nom.down.T0, data.wide.down$orthopnea.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$orthopnea.nom.down.T0, data.wide.down$orthopnea.nom.down.T1, exclude = NULL))
+
+#### PND.scale.T0
+
+table(data.wide.down$PND.scale.T0, exclude = NULL)
+prop.table(table(data.wide.down$PND.scale.T0, exclude = NULL)) 
+
+#### PND.scale.T1
+
+table(data.wide.down$PND.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$PND.scale.T1, exclude = NULL)) 
+
+#### PND.scale.T0 x PND.scale.T1
+
+table(data.wide.down$PND.scale.T0, data.wide.down$PND.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$PND.scale.T0, data.wide.down$PND.scale.T1, exclude = NULL))
+
+#### PND.nom.down.T0
+
+data.wide.down$PND.nom.down.T0 <- ifelse(data.wide.down$PND.scale.T0 == "0",
+                                         0,
+                                         NA)
+data.wide.down$PND.nom.down.T0 <- ifelse((data.wide.down$PND.scale.T0 == "1")
+                                         |
+                                         (data.wide.down$PND.scale.T0 == "2")
+                                         |
+                                         (data.wide.down$PND.scale.T0 == "3"),
+                                         1,
+                                         data.wide.down$PND.nom.down.T0)
+data.wide.down$PND.nom.down.T0 <- factor(data.wide.down$PND.nom.down.T0, ordered = FALSE)
+
+table(data.wide.down$PND.nom.down.T0, exclude = NULL)
+prop.table(table(data.wide.down$PND.nom.down.T0, exclude = NULL))
+
+#### PND.nom.down.T1
+
+data.wide.down$PND.nom.down.T1 <- ifelse(data.wide.down$PND.scale.T1 == "0",
+                                         0,
+                                         NA)
+data.wide.down$PND.nom.down.T1 <- ifelse((data.wide.down$PND.scale.T1 == "1")
+                                         |
+                                         (data.wide.down$PND.scale.T1 == "2")
+                                         |
+                                         (data.wide.down$PND.scale.T1 == "3"),
+                                         1,
+                                         data.wide.down$PND.nom.down.T1)
+data.wide.down$PND.nom.down.T1 <- factor(data.wide.down$PND.nom.down.T1, ordered = FALSE)
+
+table(data.wide.down$PND.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$PND.nom.down.T1, exclude = NULL))
+
+#### PND.nom.down.T0 x PND.nom.down.T1
+
+table(data.wide.down$PND.nom.down.T0, data.wide.down$PND.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$PND.nom.down.T0, data.wide.down$PND.nom.down.T1, exclude = NULL))
+
+#### cough.scale.T0
+
+table(data.wide.down$cough.scale.T0, exclude = NULL)
+prop.table(table(data.wide.down$cough.scale.T0, exclude = NULL)) 
+
+#### cough.scale.T1
+
+table(data.wide.down$cough.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$cough.scale.T1, exclude = NULL)) 
+
+#### cough.scale.T0 x cough.scale.T1
+
+table(data.wide.down$cough.scale.T0, data.wide.down$cough.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$cough.scale.T0, data.wide.down$cough.scale.T1, exclude = NULL))
+
+#### cough.nom.down.T0
+
+data.wide.down$cough.nom.down.T0 <- ifelse(data.wide.down$cough.scale.T0 == "0",
+                                           0,
+                                           NA)
+data.wide.down$cough.nom.down.T0 <- ifelse(data.wide.down$cough.scale.T0 == "1",
+                                           1,
+                                           data.wide.down$cough.nom.down.T0)
+data.wide.down$cough.nom.down.T0 <- ifelse((data.wide.down$cough.scale.T0 == "2") 
+                                           |
+                                           (data.wide.down$cough.scale.T0 == "3"),
+                                           2,
+                                           data.wide.down$cough.nom.down.T0)
+data.wide.down$cough.nom.down.T0 <- ordered(data.wide.down$cough.nom.down.T0)
+
+table(data.wide.down$cough.nom.down.T0, exclude = NULL)
+prop.table(table(data.wide.down$cough.nom.down.T0, exclude = NULL)) 
+
+#### cough.nom.down.T1
+
+data.wide.down$cough.nom.down.T1 <- ifelse(data.wide.down$cough.scale.T1 == "0",
+                                           0,
+                                           NA)
+data.wide.down$cough.nom.down.T1 <- ifelse(data.wide.down$cough.scale.T1 == "1",
+                                           1,
+                                           data.wide.down$cough.nom.down.T1)
+data.wide.down$cough.nom.down.T1 <- ifelse((data.wide.down$cough.scale.T1 == "2") 
+                                           |
+                                           (data.wide.down$cough.scale.T1 == "3"),
+                                           2,
+                                           data.wide.down$cough.nom.down.T1)
+data.wide.down$cough.nom.down.T1 <- ordered(data.wide.down$cough.nom.down.T1)
+
+table(data.wide.down$cough.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$cough.nom.down.T1, exclude = NULL)) 
+
+#### cough.nom.down.T0 x cough.nom.down.T1
+
+table(data.wide.down$cough.nom.down.T0, data.wide.down$cough.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$cough.nom.down.T0, data.wide.down$cough.nom.down.T1, exclude = NULL))
+
+#### nocturia.scale.T0
+
+table(data.wide.down$nocturia.scale.T0, exclude = NULL)
+prop.table(table(data.wide.down$nocturia.scale.T0, exclude = NULL)) 
+
+#### nocturia.scale.T1
+
+table(data.wide.down$nocturia.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$nocturia.scale.T1, exclude = NULL)) 
+
+#### nocturia.scale.T0 x nocturia.scale.T1
+
+table(data.wide.down$nocturia.scale.T0, data.wide.down$nocturia.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$nocturia.scale.T0, data.wide.down$nocturia.scale.T1, exclude = NULL))
+
+#### nocturia.nom.down.T0
+
+data.wide.down$nocturia.nom.down.T0 <- ordered(data.wide.down$nocturia.scale.T0)
+
+table(data.wide.down$nocturia.nom.down.T0, exclude = NULL)
+prop.table(table(data.wide.down$nocturia.nom.down.T0, exclude = NULL)) 
+
+#### nocturia.nom.down.T1
+
+data.wide.down$nocturia.nom.down.T1 <- ordered(data.wide.down$nocturia.scale.T1)
+
+table(data.wide.down$nocturia.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$nocturia.nom.down.T1, exclude = NULL))
+
+#### nocturia.nom.down.T0 x nocturia.nom.down.T1
+
+table(data.wide.down$nocturia.nom.down.T0, data.wide.down$nocturia.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$nocturia.nom.down.T0, data.wide.down$nocturia.nom.down.T1, exclude = NULL))
+
+#### dizziness.scale.T0
+
+table(data.wide.down$dizziness.scale.T0, exclude = NULL)
+prop.table(table(data.wide.down$dizziness.scale.T0, exclude = NULL))
+
+#### dizziness.scale.T1
+
+table(data.wide.down$dizziness.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$dizziness.scale.T1, exclude = NULL)) 
+
+#### dizziness.scale.T0 x dizziness.scale.T1
+
+table(data.wide.down$dizziness.scale.T0, data.wide.down$dizziness.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$dizziness.scale.T0, data.wide.down$dizziness.scale.T1, exclude = NULL))
+
+#### dizziness.nom.down.T0
+
+data.wide.down$dizziness.nom.down.T0 <- ifelse(data.wide.down$dizziness.scale.T0 == "0",
+                                               0,
+                                               NA)
+data.wide.down$dizziness.nom.down.T0 <- ifelse(data.wide.down$dizziness.scale.T0 == "1",
+                                               1,
+                                               data.wide.down$dizziness.nom.down.T0)
+data.wide.down$dizziness.nom.down.T0 <- ifelse((data.wide.down$dizziness.scale.T0 == "2")
+                                               |
+                                               (data.wide.down$dizziness.scale.T0 == "3"),
+                                               2,
+                                               data.wide.down$dizziness.nom.down.T0)
+data.wide.down$dizziness.nom.down.T0 <- ordered(data.wide.down$dizziness.nom.down.T0)
+
+table(data.wide.down$dizziness.nom.down.T0, exclude = NULL)
+prop.table(table(data.wide.down$dizziness.nom.down.T0, exclude = NULL)) 
+
+#### dizziness.nom.down.T1
+
+data.wide.down$dizziness.nom.down.T1 <- ifelse(data.wide.down$dizziness.scale.T1 == "0",
+                                               0,
+                                               NA)
+data.wide.down$dizziness.nom.down.T1 <- ifelse(data.wide.down$dizziness.scale.T1 == "1",
+                                               1,
+                                               data.wide.down$dizziness.nom.down.T1)
+data.wide.down$dizziness.nom.down.T1 <- ifelse((data.wide.down$dizziness.scale.T1 == "2")
+                                               |
+                                               (data.wide.down$dizziness.scale.T1 == "3"),
+                                               2,
+                                               data.wide.down$dizziness.nom.down.T1)
+data.wide.down$dizziness.nom.down.T1 <- ordered(data.wide.down$dizziness.nom.down.T1)
+
+table(data.wide.down$dizziness.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$dizziness.nom.down.T1, exclude = NULL)) 
+
+#### dizziness.nom.T0 x dizziness.nom.T1
+
+table(data.wide.down$dizziness.nom.down.T0, data.wide.down$dizziness.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$dizziness.nom.down.T0, data.wide.down$dizziness.nom.down.T1, exclude = NULL))
+
+#### orthostasis.scale.T0
+
+table(data.wide.down$orthostasis.scale.T0, exclude = NULL)
+prop.table(table(data.wide.down$orthostasis.scale.T0, exclude = NULL)) 
+
+#### orthostasis.scale.T1
+
+table(data.wide.down$orthostasis.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$orthostasis.scale.T1, exclude = NULL)) 
+
+#### orthostasis.scale.T0 x orthostasis.scale.T1
+
+table(data.wide.down$orthostasis.scale.T0, data.wide.down$orthostasis.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$orthostasis.scale.T0, data.wide.down$orthostasis.scale.T1, exclude = NULL))
+
+#### orthostasis.nom.down.T0
+
+data.wide.down$orthostasis.nom.down.T0 <- ifelse(data.wide.down$orthostasis.scale.T0 == "0",
+                                                 0,
+                                                 NA)
+data.wide.down$orthostasis.nom.down.T0 <- ifelse(data.wide.down$orthostasis.scale.T0 == "1",
+                                                 1,
+                                                 data.wide.down$orthostasis.nom.down.T0)
+data.wide.down$orthostasis.nom.down.T0 <- ifelse((data.wide.down$orthostasis.scale.T0 == "2")
+                                                 |
+                                                 (data.wide.down$orthostasis.scale.T0 == "3"),
+                                                 2,
+                                                 data.wide.down$orthostasis.nom.down.T0)
+data.wide.down$orthostasis.nom.down.T0 <- ordered(data.wide.down$orthostasis.nom.down.T0)
+
+table(data.wide.down$orthostasis.nom.down.T0, exclude = NULL)
+prop.table(table(data.wide.down$orthostasis.nom.down.T0, exclude = NULL)) 
+
+#### orthostasis.nom.down.T1
+
+data.wide.down$orthostasis.nom.down.T1 <- ifelse(data.wide.down$orthostasis.scale.T1 == "0",
+                                                 0,
+                                                 NA)
+data.wide.down$orthostasis.nom.down.T1 <- ifelse(data.wide.down$orthostasis.scale.T1 == "1",
+                                                 1,
+                                                 data.wide.down$orthostasis.nom.down.T1)
+data.wide.down$orthostasis.nom.down.T1 <- ifelse((data.wide.down$orthostasis.scale.T1 == "2")
+                                                 |
+                                                 (data.wide.down$orthostasis.scale.T1 == "3"),
+                                                 2,
+                                                 data.wide.down$orthostasis.nom.down.T1)
+data.wide.down$orthostasis.nom.down.T1 <- ordered(data.wide.down$orthostasis.nom.down.T1)
+
+table(data.wide.down$orthostasis.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$orthostasis.nom.down.T1, exclude = NULL)) 
+
+#### orthostasis.nom.down.T0 x orthostasis.nom.down.T1
+
+table(data.wide.down$orthostasis.nom.down.T0, data.wide.down$orthostasis.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$orthostasis.nom.down.T0, data.wide.down$orthostasis.nom.down.T1, exclude = NULL))
+
+#### syncope.T0
+
+table(data.wide.down$syncope.T0, exclude = NULL)
+prop.table(table(data.wide.down$syncope.T0, exclude = NULL)) 
+
+#### syncope.T1
+
+table(data.wide.down$syncope.T1, exclude = NULL)
+prop.table(table(data.wide.down$syncope.T1, exclude = NULL)) # < 5%
+
+#### syncope.T0 x syncope.T1
+
+table(data.wide.down$syncope.T0, data.wide.down$syncope.T1, exclude = NULL)
+prop.table(table(data.wide.down$syncope.T0, data.wide.down$syncope.T1, exclude = NULL))
+
+#### weight.T0
+
+summary(data.wide.down$weight.T0) 
+sd(data.wide.down$weight.T0, na.rm = TRUE) 
+
+#### weight.T1
+
+summary(data.wide.down$weight.T1) 
+sd(data.wide.down$weight.T1, na.rm = TRUE) 
+
+#### weight.T0 x weight.T1
+
+summary(data.wide.down$weight.T0 - data.wide.down$weight.T1)
+sd(data.wide.down$weight.T0 - data.wide.down$weight.T1, na.rm = TRUE)
+
+#### height
+
+summary(data.wide.down$height) 
+sd(data.wide.down$height, na.rm = TRUE) 
+
+#### BMI.T0
+
+summary(data.wide.down$BMI.T0) 
+sd(data.wide.down$BMI.T0, na.rm = TRUE) 
+
+#### BMI.T1
+
+summary(data.wide.down$BMI.T1) 
+sd(data.wide.down$BMI.T1, na.rm = TRUE) 
+
+#### BMI.T0 x BMI.T1
+
+summary(data.wide.down$BMI.T0 - data.wide.down$BMI.T1)
+sd(data.wide.down$BMI.T0 - data.wide.down$BMI.T1, na.rm = TRUE)
+
+#### SBP.T0
+
+summary(data.wide.down$SBP.T0) 
+sd(data.wide.down$SBP.T0, na.rm = TRUE) 
+
+#### SBP.T1
+
+summary(data.wide.down$SBP.T1) 
+sd(data.wide.down$SBP.T1, na.rm = TRUE) 
+
+#### SBP.T0 x SBP.T1
+
+summary(data.wide.down$SBP.T0 - data.wide.down$SBP.T1)
+sd(data.wide.down$SBP.T0 - data.wide.down$SBP.T1, na.rm = TRUE)
+
+#### DBP.T0
+
+summary(data.wide.down$DBP.T0) 
+sd(data.wide.down$DBP.T0, na.rm = TRUE) 
+
+#### DBP.T1
+
+summary(data.wide.down$DBP.T1) 
+sd(data.wide.down$DBP.T1, na.rm = TRUE) 
+
+#### DBP.T0 x DBP.T1
+
+summary(data.wide.down$DBP.T0 - data.wide.down$DBP.T1)
+sd(data.wide.down$DBP.T0 - data.wide.down$DBP.T1, na.rm = TRUE)
+
+#### SBP_minus_DBP.T0
+
+summary(data.wide.down$SBP_minus_DBP.T0) 
+sd(data.wide.down$SBP_minus_DBP.T0, na.rm = TRUE) 
+
+#### SBP_minus_DBP.T1
+
+summary(data.wide.down$SBP_minus_DBP.T1) 
+sd(data.wide.down$SBP_minus_DBP.T1, na.rm = TRUE) 
+
+#### SBP_minus_DBP.T0 x SBP_minus_DBP.T1
+
+summary(data.wide.down$SBP_minus_DBP.T0 - data.wide.down$SBP_minus_DBP.T1)
+sd(data.wide.down$SBP_minus_DBP.T0 - data.wide.down$SBP_minus_DBP.T1, na.rm = TRUE)
+
+#### HR.T0
+
+summary(data.wide.down$HR.T0) 
+sd(data.wide.down$HR.T0, na.rm = TRUE) 
+
+#### HR.T1
+
+summary(data.wide.down$HR.T1) 
+sd(data.wide.down$HR.T1, na.rm = TRUE) 
+
+#### HR.T0 x HR.T1
+
+summary(data.wide.down$HR.T0 - data.wide.down$HR.T1)
+sd(data.wide.down$HR.T0 - data.wide.down$HR.T1, na.rm = TRUE)
+
+#### S3.T0
+
+table(data.wide.down$S3.T0, exclude = NULL)
+prop.table(table(data.wide.down$S3.T0, exclude = NULL))
+
+#### S3.T1
+
+table(data.wide.down$S3.T1, exclude = NULL)
+prop.table(table(data.wide.down$S3.T1, exclude = NULL)) 
+
+#### S3.T0 x S3.T1
+
+table(data.wide.down$S3.T0, data.wide.down$S3.T1, exclude = NULL)
+prop.table(table(data.wide.down$S3.T0, data.wide.down$S3.T1, exclude = NULL))
+
+#### hepatomegaly.T0
+
+table(data.wide.down$hepatomegaly.T0, exclude = NULL)
+prop.table(table(data.wide.down$hepatomegaly.T0, exclude = NULL))
+
+#### hepatomegaly.T1
+
+table(data.wide.down$hepatomegaly.T1, exclude = NULL)
+prop.table(table(data.wide.down$hepatomegaly.T1, exclude = NULL)) 
+
+#### hepatomegaly.T0 x hepatomegaly.T1
+
+table(data.wide.down$hepatomegaly.T0, data.wide.down$hepatomegaly.T1, exclude = NULL)
+prop.table(table(data.wide.down$hepatomegaly.T0, data.wide.down$hepatomegaly.T1, exclude = NULL))
+
+#### JV.scale.T0
+
+table(data.wide.down$JV.scale.T0, exclude = NULL)
+prop.table(table(data.wide.down$JV.scale.T0, exclude = NULL)) 
+
+#### JV.scale.T1
+
+table(data.wide.down$JV.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$JV.scale.T1, exclude = NULL)) 
+
+#### JV.scale.T0 x JV.scale.T1
+
+table(data.wide.down$JV.scale.T0, data.wide.down$JV.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$JV.scale.T0, data.wide.down$JV.scale.T1, exclude = NULL))
+
+#### JV.nom.down.T0
+
+data.wide.down$JV.nom.down.T0 <- ifelse(data.wide.down$JV.scale.T0 == "0",
+                                        0,
+                                        NA)
+data.wide.down$JV.nom.down.T0 <- ifelse(data.wide.down$JV.scale.T0 == "1",
+                                        1,
+                                        data.wide.down$JV.nom.down.T0)
+data.wide.down$JV.nom.down.T0 <- ifelse((data.wide.down$JV.scale.T0 == "2")
+                                        |
+                                        (data.wide.down$JV.scale.T0 == "3"),
+                                        2,
+                                        data.wide.down$JV.nom.down.T0)
+data.wide.down$JV.nom.down.T0 <- ordered(data.wide.down$JV.nom.down.T0)
+
+table(data.wide.down$JV.nom.down.T0, exclude = NULL)
+prop.table(table(data.wide.down$JV.nom.down.T0, exclude = NULL))
+
+#### JV.nom.down.T1
+
+data.wide.down$JV.nom.down.T1 <- ifelse(data.wide.down$JV.scale.T1 == "0",
+                                        0,
+                                        NA)
+data.wide.down$JV.nom.down.T1 <- ifelse(data.wide.down$JV.scale.T1 == "1",
+                                        1,
+                                        data.wide.down$JV.nom.down.T1)
+data.wide.down$JV.nom.down.T1 <- ifelse((data.wide.down$JV.scale.T1 == "2")
+                                        |
+                                        (data.wide.down$JV.scale.T1 == "3"),
+                                        2,
+                                        data.wide.down$JV.nom.down.T1)
+data.wide.down$JV.nom.down.T1 <- ordered(data.wide.down$JV.nom.down.T1)
+
+table(data.wide.down$JV.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$JV.nom.down.T1, exclude = NULL))
+
+#### JV.nom.down.T0 x JV.nom.down.T1
+
+table(data.wide.down$JV.nom.down.T0, data.wide.down$JV.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$JV.nom.down.T0, data.wide.down$JV.nom.down.T1, exclude = NULL))
+
+#### rales.scale.T0
+
+table(data.wide.down$rales.scale.T0, exclude = NULL)
+prop.table(table(data.wide.down$rales.scale.T0, exclude = NULL)) 
+
+#### rales.scale.T1
+
+table(data.wide.down$rales.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$rales.scale.T1, exclude = NULL)) 
+
+#### rales.scale.T0 x rales.scale.T1
+
+table(data.wide.down$rales.scale.T0, data.wide.down$rales.scale.T1, exclude = NULL)
+prop.table(table(data.wide.down$rales.scale.T0, data.wide.down$rales.scale.T1, exclude = NULL))
+
+#### rales.nom.down.T0
+
+data.wide.down$rales.nom.down.T0 <- ifelse(data.wide.down$rales.scale.T0 == "0",
+                                           0,
+                                           NA)
+data.wide.down$rales.nom.down.T0 <- ifelse((data.wide.down$rales.scale.T0 == "1")
+                                           |
+                                           (data.wide.down$rales.scale.T0 == "2")
+                                           |
+                                           (data.wide.down$rales.scale.T0 == "3"),
+                                           1,
+                                           data.wide.down$rales.nom.down.T0)
+data.wide.down$rales.nom.down.T0 <- factor(data.wide.down$rales.nom.down.T0, ordered = FALSE)
+
+table(data.wide.down$rales.nom.down.T0, exclude = NULL)
+prop.table(table(data.wide.down$rales.nom.down.T0, exclude = NULL))
+
+#### rales.nom.down.T1
+
+data.wide.down$rales.nom.down.T1 <- ifelse(data.wide.down$rales.scale.T1 == "0",
+                                           0,
+                                           NA)
+data.wide.down$rales.nom.down.T1 <- ifelse((data.wide.down$rales.scale.T1 == "1")
+                                           |
+                                           (data.wide.down$rales.scale.T1 == "2")
+                                           |
+                                           (data.wide.down$rales.scale.T1 == "3"),
+                                           1,
+                                           data.wide.down$rales.nom.down.T1)
+data.wide.down$rales.nom.down.T1 <- factor(data.wide.down$rales.nom.down.T1, ordered = FALSE)
+
+table(data.wide.down$rales.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$rales.nom.down.T1, exclude = NULL))
+
+#### rales.nom.down.T0 x rales.nom.down.T1
+
+table(data.wide.down$rales.nom.down.T0, data.wide.down$rales.nom.down.T1, exclude = NULL)
+prop.table(table(data.wide.down$rales.nom.down.T0, data.wide.down$rales.nom.down.T1, exclude = NULL))
+
+#### Cr.T0
+
+summary(data.wide.down$Cr.T0) 
+sd(data.wide.down$Cr.T0, na.rm = TRUE) 
+
+#### Cr.T1
+
+summary(data.wide.down$Cr.T1) 
+sd(data.wide.down$Cr.T1, na.rm = TRUE) 
+
+#### Cr.T0 x Cr.T1
+
+summary(data.wide.down$Cr.T0 - data.wide.down$Cr.T1)
+sd(data.wide.down$Cr.T0 - data.wide.down$Cr.T1, na.rm = TRUE)
+
+#### T_group
+
+table(data.wide.down$T_group, exclude = NULL)
+prop.table(table(data.wide.down$T_group, exclude = NULL))
+
+# MISSING VALUES ----
+
+## SUBSET UP-TITRATION ----
+
+up.n_na <- apply(is.na(data.wide.up),
+                 2,
+                 sum)
+up.n_na
+
+## SUBSET DOWN-TITRATION ----
+
+down.n_na <- apply(is.na(data.wide.down),
+                   2,
+                   sum)
+down.n_na
+
+# NUMBER OF BOOTSTRAPS IN ALL BOOTSTRAP PROCEDURES ----
+
+n_boot <- 500
+
+# MODELLING PER PREDICTOR ----
+
+## UP-TITRATION ----
+
+predictor.up <-  c("male",
+                   "age",
+                   "dose",
+                   "NYHA.nom.up",
+                   "NYHA.scale",
+                   "angina",
+                   "edema.nom.up",
+                   "edema.scale",
+                   "orthopnea.nom.up",
+                   "orthopnea.scale",
+                   "PND.nom.up",
+                   "PND.scale",
+                   "cough.nom.up",
+                   "cough.scale",
+                   "nocturia.nom.up",
+                   "nocturia.scale",
+                   "dizziness.nom.up",
+                   "dizziness.scale",
+                   "orthostasis.nom.up",
+                   "orthostasis.scale",
+                   "syncope",
+                   "BMI",
+                   "SBP",
+                   "DBP",
+                   "SBP_minus_DBP",
+                   "HR",
+                   "S3",
+                   "hepatomegaly",
+                   "JV.nom.up",
+                   "JV.scale",
+                   "rales.nom.up",
+                   "rales.scale",
+                   "Cr",
+                   "T_group")
+Tx <- c("T1",
+        "T1_and_T0")
+results.per_predictor.up <- merge(predictor.up,
+                                  Tx,
+                                  by = NULL)
+colnames(results.per_predictor.up) <- c("predictor.up",
+                                        "Tx")
+results.per_predictor.up <- results.per_predictor.up[-c(35, 36, 68), ]
+results.per_predictor.up$cc.Rsq <- NA
+results.per_predictor.up$boot.cc.Rsq.95_lb <- NA
+results.per_predictor.up$boot.cc.Rsq.95_ub <- NA
+results.per_predictor.up$cc.C <- NA
+results.per_predictor.up$boot.cc.C.95_lb <- NA
+results.per_predictor.up$boot.cc.C.95_ub <- NA
+results.per_predictor.up$mi.Rsq <- NA
+results.per_predictor.up$boot.mi.Rsq.95_lb <- NA
+results.per_predictor.up$boot.mi.Rsq.95_ub <- NA
+results.per_predictor.up$mi.C <- NA
+results.per_predictor.up$boot.mi.C.95_lb <- NA
+results.per_predictor.up$boot.mi.C.95_ub <- NA
+
+for(i in 1:nrow(results.per_predictor.up)) {
+  predictor_selected <- results.per_predictor.up[i, "predictor.up"]
+  Tx_selected <- results.per_predictor.up[i, "Tx"]
+  
+  if(predictor_selected == "male") {
+    model_formula <- as.formula("recom.up.T1 ~ T_group + male")
+  } else if(predictor_selected == "age") {
+    model_formula <- as.formula("recom.up.T1 ~ T_group + age.T1")
+  } else if(predictor_selected == "T_group") {
+    model_formula <- as.formula("recom.up.T1 ~ T_group")
+  } else {
+    if(Tx_selected == "T1") {
+      predictor_selected <- paste0(predictor_selected, ".T1")
+      model_formula <- as.formula(paste0("recom.up.T1 ~ T_group +", predictor_selected))
+    } else if(Tx_selected == "T1_and_T0"){
+      predictor_selected <- paste0(predictor_selected, ".T1 +", predictor_selected, ".T0")
+      model_formula <- as.formula(paste0("recom.up.T1 ~ T_group +", predictor_selected))
+    }
+  }
+  
+  # cc 
+  
+  ## model
+    
+  fit.per_predictor.up.cc <- lrm(model_formula,
+                                 data = data.wide.up,
+                                 x = TRUE,
+                                 y = TRUE)
+
+  results.per_predictor.up[i, "cc.Rsq"] <- fit.per_predictor.up.cc[["stats"]][["R2"]]
+  results.per_predictor.up[i, "cc.C"] <- fit.per_predictor.up.cc[["stats"]][["C"]]
+  
+  ## boot
+  
+  boot.results.per_predictor.up.cc <- as.data.frame(matrix(nrow = n_boot,
+                                                    ncol = 2))
+  colnames(boot.results.per_predictor.up.cc) <- c("Rsq",
+                                                  "C")
+  for(b in 1:n_boot) {
+    temp <- data.wide.up
+    boot.index <- sample(1:nrow(temp), size = nrow(temp), replace = TRUE)
+    boot.data <- temp[boot.index, ]
+    
+    boot.fit.per_predictor.up.cc <- lrm(model_formula, 
+                                        data = boot.data)
+    
+    boot.results.per_predictor.up.cc[b, "Rsq"] <- boot.fit.per_predictor.up.cc[["stats"]][["R2"]]
+    boot.results.per_predictor.up.cc[b, "C"] <- boot.fit.per_predictor.up.cc[["stats"]][["C"]]
+  }
+  results.per_predictor.up[i, "boot.cc.Rsq.95_lb"] <- quantile(boot.results.per_predictor.up.cc[, "Rsq"], 0.025)[[1]]
+  results.per_predictor.up[i, "boot.cc.Rsq.95_ub"] <- quantile(boot.results.per_predictor.up.cc[, "Rsq"], 0.975)[[1]]
+  results.per_predictor.up[i, "boot.cc.C.95_lb"] <- quantile(boot.results.per_predictor.up.cc[, "C"], 0.025)[[1]]
+  results.per_predictor.up[i, "boot.cc.C.95_ub"] <- quantile(boot.results.per_predictor.up.cc[, "C"], 0.975)[[1]]
+
+  # mi
+      
+  if(length(fit.per_predictor.up.cc[["na.action"]][["nmiss"]]) != 0) {
+    imputation_formula <- as.formula(paste("~ recom.up.T1", 
+                                           "+", predictor_selected, 
+                                           "+ age.T1",
+                                           "+ male"))
+    
+    ## model
+    
+    imp <- aregImpute(imputation_formula, 
+                      n.impute = 5,
+                      nk = 0,
+                      data = data.wide.up,
+                      pr = FALSE)
+    
+    fit.per_predictor.up.mi <- fit.mult.impute(model_formula,
+                                               lrm,
+                                               imp,
+                                               data = data.wide.up,
+                                               pr = FALSE)
+    
+    results.per_predictor.up[i, "mi.Rsq"] <- fit.per_predictor.up.mi[["stats"]][["R2"]]
+    results.per_predictor.up[i, "mi.C"] <- fit.per_predictor.up.mi[["stats"]][["C"]]
+    
+    ## boot
+    
+    boot.results.per_predictor.up.mi <- as.data.frame(matrix(nrow = n_boot,
+                                                      ncol = 2))
+    colnames(boot.results.per_predictor.up.mi) <- c("Rsq",
+                                                    "C")
+    for(b in 1:n_boot) {
+      temp <- data.wide.up
+      boot.index <- sample(1:nrow(temp), size = nrow(temp), replace = TRUE)
+      boot.data <- temp[boot.index, ]
+      
+      boot.imp <- aregImpute(imputation_formula, 
+                             n.impute = 5,
+                             nk = 0,
+                             data = boot.data, 
+                             pr = FALSE)
+      
+      boot.fit.per_predictor.up.mi <- fit.mult.impute(model_formula,
+                                                      lrm,
+                                                      boot.imp,
+                                                      data = boot.data,
+                                                      pr = FALSE)
+      
+      boot.results.per_predictor.up.mi[b, "Rsq"] <- boot.fit.per_predictor.up.mi[["stats"]][["R2"]]
+      boot.results.per_predictor.up.mi[b, "C"] <- boot.fit.per_predictor.up.mi[["stats"]][["C"]]
+    }
+    results.per_predictor.up[i, "boot.mi.Rsq.95_lb"] <- quantile(boot.results.per_predictor.up.mi[, "Rsq"], 0.025)[[1]]
+    results.per_predictor.up[i, "boot.mi.Rsq.95_ub"] <- quantile(boot.results.per_predictor.up.mi[, "Rsq"], 0.975)[[1]]
+    results.per_predictor.up[i, "boot.mi.C.95_lb"] <- quantile(boot.results.per_predictor.up.mi[, "C"], 0.025)[[1]]
+    results.per_predictor.up[i, "boot.mi.C.95_ub"] <- quantile(boot.results.per_predictor.up.mi[, "C"], 0.975)[[1]]
+  }
+}
+
+results.per_predictor.up
+
+    # nom vs. scale
+    
+    predictor.up.nom_or_scale <- c("NYHA",
+                                   "edema",
+                                   "orthopnea",
+                                   "PND",
+                                   "cough",
+                                   "nocturia",
+                                   "dizziness",
+                                   "orthostasis",
+                                   "JV",
+                                   "rales")
+    
+    results.per_predictor.up.nom_vs_scale <- merge(predictor.up.nom_or_scale,
+                                                   Tx,
+                                                   by = NULL)
+    colnames(results.per_predictor.up.nom_vs_scale) <- c("predictor.up.nom_or_scale",
+                                                         "Tx")
+    results.per_predictor.up.nom_vs_scale$cc.Rsq.nom_minus_scale <- NA
+    results.per_predictor.up.nom_vs_scale$cc.C.nom_minus_scale <- NA
+    results.per_predictor.up.nom_vs_scale$mi.Rsq.nom_minus_scale <- NA
+    results.per_predictor.up.nom_vs_scale$mi.C.nom_minus_scale <- NA
+    
+    for (i in 1:nrow(results.per_predictor.up.nom_vs_scale)) {
+      predictor_selected <- results.per_predictor.up.nom_vs_scale[i, "predictor.up.nom_or_scale"]
+      predictor_selected.nom <- paste0(predictor_selected, ".nom.up")
+      predictor_selected.scale <- paste0(predictor_selected, ".scale")
+      Tx_selected <- results.per_predictor.up.nom_vs_scale[i, "Tx"]
+        
+      results.per_predictor.up.nom_vs_scale[i, "cc.Rsq.nom_minus_scale"] <-
+        subset(results.per_predictor.up, (predictor.up == predictor_selected.nom)
+                                         &
+                                         (Tx == Tx_selected))$cc.Rsq -
+        subset(results.per_predictor.up, (predictor.up == predictor_selected.scale)
+                                         &
+                                         (Tx == Tx_selected))$cc.Rsq
+      results.per_predictor.up.nom_vs_scale[i, "cc.C.nom_minus_scale"] <-
+        subset(results.per_predictor.up, (predictor.up == predictor_selected.nom)
+                                         &
+                                         (Tx == Tx_selected))$cc.C -
+        subset(results.per_predictor.up, (predictor.up == predictor_selected.scale)
+                                         &
+                                         (Tx == Tx_selected))$cc.C
+      results.per_predictor.up.nom_vs_scale[i, "mi.Rsq.nom_minus_scale"] <-
+        subset(results.per_predictor.up, (predictor.up == predictor_selected.nom)
+                                         &
+                                         (Tx == Tx_selected))$mi.Rsq -
+        subset(results.per_predictor.up, (predictor.up == predictor_selected.scale)
+                                         &
+                                         (Tx == Tx_selected))$mi.Rsq
+      results.per_predictor.up.nom_vs_scale[i, "mi.C.nom_minus_scale"] <-
+        subset(results.per_predictor.up, (predictor.up == predictor_selected.nom)
+                                         &
+                                         (Tx == Tx_selected))$mi.C -
+        subset(results.per_predictor.up, (predictor.up == predictor_selected.scale)
+                                         &
+                                         (Tx == Tx_selected))$mi.C
+    }
+    
+    results.per_predictor.up.nom_vs_scale
+    
+    summary(results.per_predictor.up.nom_vs_scale$cc.Rsq.nom_minus_scale)
+    summary(results.per_predictor.up.nom_vs_scale$cc.C.nom_minus_scale)
+    summary(results.per_predictor.up.nom_vs_scale$mi.Rsq.nom_minus_scale)
+    summary(results.per_predictor.up.nom_vs_scale$mi.C.nom_minus_scale)
+    subset(results.per_predictor.up.nom_vs_scale, (abs(mi.Rsq.nom_minus_scale) >= 0.01)
+                                                  &
+                                                  (abs(mi.C.nom_minus_scale) >= 0.01))
+    
+  # T1 vs. T1 and T0
+  
+  predictor.up.Tx <- c("dose",
+                       "NYHA.nom.up",
+                       "NYHA.scale",
+                       "angina",
+                       "edema.nom.up",
+                       "edema.scale",
+                       "orthopnea.nom.up",
+                       "orthopnea.scale",
+                       "PND.nom.up",
+                       "PND.scale",
+                       "cough.nom.up",
+                       "cough.scale",
+                       "nocturia.nom.up",
+                       "nocturia.scale",
+                       "dizziness.nom.up",
+                       "dizziness.scale",
+                       "orthostasis.nom.up",
+                       "orthostasis.scale",
+                       "syncope",
+                       "BMI",
+                       "SBP",
+                       "DBP",
+                       "SBP_minus_DBP",
+                       "HR",
+                       "S3",
+                       "hepatomegaly",
+                       "JV.nom.up",
+                       "JV.scale",
+                       "rales.nom.up",
+                       "rales.scale",
+                       "Cr")
+  
+  results.per_predictor.up.T1_vs_T1_and_T0 <- as.data.frame(predictor.up.Tx)
+  results.per_predictor.up.T1_vs_T1_and_T0$cc.Rsq.T1_minus_T1_and_T0 <- NA
+  results.per_predictor.up.T1_vs_T1_and_T0$cc.C.T1_minus_T1_and_T0 <- NA
+  results.per_predictor.up.T1_vs_T1_and_T0$mi.Rsq.T1_minus_T1_and_T0 <- NA
+  results.per_predictor.up.T1_vs_T1_and_T0$mi.C.T1_minus_T1_and_T0 <- NA
+  for(i in 1:nrow(results.per_predictor.up.T1_vs_T1_and_T0)) {
+    predictor_selected <- results.per_predictor.up.T1_vs_T1_and_T0[i, "predictor.up.Tx"]
+    
+    results.per_predictor.up.T1_vs_T1_and_T0[i, "cc.Rsq.T1_minus_T1_and_T0"] <- 
+      subset(results.per_predictor.up, (predictor.up == predictor_selected)
+                                       &
+                                       (Tx == "T1"))$cc.Rsq -
+      subset(results.per_predictor.up, (predictor.up == predictor_selected)
+                                       &
+                                       (Tx == "T1_and_T0"))$cc.Rsq
+    results.per_predictor.up.T1_vs_T1_and_T0[i, "cc.C.T1_minus_T1_and_T0"] <- 
+      subset(results.per_predictor.up, (predictor.up == predictor_selected)
+                                       &
+                                       (Tx == "T1"))$cc.C -
+      subset(results.per_predictor.up, (predictor.up == predictor_selected)
+                                       &
+                                       (Tx == "T1_and_T0"))$cc.C
+    results.per_predictor.up.T1_vs_T1_and_T0[i, "mi.Rsq.T1_minus_T1_and_T0"] <- 
+      subset(results.per_predictor.up, (predictor.up == predictor_selected)
+                                       &
+                                       (Tx == "T1"))$mi.Rsq -
+      subset(results.per_predictor.up, (predictor.up == predictor_selected)
+                                       &
+                                       (Tx == "T1_and_T0"))$mi.Rsq
+    results.per_predictor.up.T1_vs_T1_and_T0[i, "mi.C.T1_minus_T1_and_T0"] <- 
+      subset(results.per_predictor.up, (predictor.up == predictor_selected)
+                                       &
+                                       (Tx == "T1"))$mi.C -
+      subset(results.per_predictor.up, (predictor.up == predictor_selected)
+                                       &
+                                       (Tx == "T1_and_T0"))$mi.C
+  }
+  
+  results.per_predictor.up.T1_vs_T1_and_T0
+  
+  summary(results.per_predictor.up.T1_vs_T1_and_T0$cc.Rsq.T1_minus_T1_and_T0)
+  summary(results.per_predictor.up.T1_vs_T1_and_T0$cc.C.T1_minus_T1_and_T0)
+  summary(results.per_predictor.up.T1_vs_T1_and_T0$mi.Rsq.T1_minus_T1_and_T0)
+  summary(results.per_predictor.up.T1_vs_T1_and_T0$mi.C.T1_minus_T1_and_T0)
+  subset(results.per_predictor.up.T1_vs_T1_and_T0, (abs(mi.Rsq.T1_minus_T1_and_T0) >= 0.01)
+                                                   &
+                                                   (abs(mi.C.T1_minus_T1_and_T0) >= 0.01))
+
+## DOWN-TITRATION ----
+
+predictor.down <-  c("male",
+                     "age",
+                     "dose",
+                     "NYHA.nom.down",
+                     "NYHA.scale",
+                     "angina",
+                     "edema.nom.down",
+                     "edema.scale",
+                     "orthopnea.nom.down",
+                     "orthopnea.scale",
+                     "PND.nom.down",
+                     "PND.scale",
+                     "cough.nom.down",
+                     "cough.scale",
+                     "nocturia.nom.down",
+                     "nocturia.scale",
+                     "dizziness.nom.down",
+                     "dizziness.scale",
+                     "orthostasis.nom.down",
+                     "orthostasis.scale",
+                     "syncope",
+                     "BMI",
+                     "SBP",
+                     "DBP",
+                     "SBP_minus_DBP",
+                     "HR",
+                     "S3",
+                     "hepatomegaly",
+                     "JV.nom.down",
+                     "JV.scale",
+                     "rales.nom.down",
+                     "rales.scale",
+                     "Cr",
+                     "T_group")
+Tx <- c("T1",
+        "T1_and_T0")
+results.per_predictor.down <- merge(predictor.down,
+                                    Tx,
+                                    by = NULL)
+colnames(results.per_predictor.down) <- c("predictor.down",
+                                          "Tx")
+results.per_predictor.down <- results.per_predictor.down[-c(35, 36, 68), ]
+results.per_predictor.down$cc.Rsq <- NA
+results.per_predictor.down$boot.cc.Rsq.95_lb <- NA
+results.per_predictor.down$boot.cc.Rsq.95_ub <- NA
+results.per_predictor.down$cc.C <- NA
+results.per_predictor.down$boot.cc.C.95_lb <- NA
+results.per_predictor.down$boot.cc.C.95_ub <- NA
+results.per_predictor.down$mi.Rsq <- NA
+results.per_predictor.down$boot.mi.Rsq.95_lb <- NA
+results.per_predictor.down$boot.mi.Rsq.95_ub <- NA
+results.per_predictor.down$mi.C <- NA
+results.per_predictor.down$boot.mi.C.95_lb <- NA
+results.per_predictor.down$boot.mi.C.95_ub <- NA
+
+for(i in 1:nrow(results.per_predictor.down)) {
+  predictor_selected <- results.per_predictor.down[i, "predictor.down"]
+  Tx_selected <- results.per_predictor.down[i, "Tx"]
+  
+  if(predictor_selected == "male") {
+    model_formula <- as.formula("recom.down.T1 ~ T_group + male")
+  } else if(predictor_selected == "age") {
+    model_formula <- as.formula("recom.down.T1 ~ T_group + age.T1")
+  } else if(predictor_selected == "T_group") {
+    model_formula <- as.formula("recom.down.T1 ~ T_group")
+  } else {
+    if(Tx_selected == "T1") {
+      predictor_selected <- paste0(predictor_selected, ".T1")
+      model_formula <- as.formula(paste0("recom.down.T1 ~ T_group +", predictor_selected))
+    } else if(Tx_selected == "T1_and_T0"){
+      predictor_selected <- paste0(predictor_selected, ".T1 +", predictor_selected, ".T0")
+      model_formula <- as.formula(paste0("recom.down.T1 ~ T_group +", predictor_selected))
+    }
+  }
+  
+  # cc 
+  
+  ## model
+  
+  fit.per_predictor.down.cc <- lrm(model_formula,
+                                   data = data.wide.down,
+                                   x = TRUE,
+                                   y = TRUE)
+  
+  results.per_predictor.down[i, "cc.Rsq"] <- fit.per_predictor.down.cc[["stats"]][["R2"]]
+  results.per_predictor.down[i, "cc.C"] <- fit.per_predictor.down.cc[["stats"]][["C"]]
+  
+  ## boot
+  
+  boot.results.per_predictor.down.cc <- as.data.frame(matrix(nrow = n_boot,
+                                                             ncol = 2))
+  colnames(boot.results.per_predictor.down.cc) <- c("Rsq",
+                                                    "C")
+  for(b in 1:n_boot) {
+    temp <- data.wide.down
+    boot.index <- sample(1:nrow(temp), size = nrow(temp), replace = TRUE)
+    boot.data <- temp[boot.index, ]
+    
+    boot.fit.per_predictor.down.cc <- lrm(model_formula, 
+                                          data = boot.data)
+    
+    boot.results.per_predictor.down.cc[b, "Rsq"] <- boot.fit.per_predictor.down.cc[["stats"]][["R2"]]
+    boot.results.per_predictor.down.cc[b, "C"] <- boot.fit.per_predictor.down.cc[["stats"]][["C"]]
+  }
+  results.per_predictor.down[i, "boot.cc.Rsq.95_lb"] <- quantile(boot.results.per_predictor.down.cc[, "Rsq"], 0.025)[[1]]
+  results.per_predictor.down[i, "boot.cc.Rsq.95_ub"] <- quantile(boot.results.per_predictor.down.cc[, "Rsq"], 0.975)[[1]]
+  results.per_predictor.down[i, "boot.cc.C.95_lb"] <- quantile(boot.results.per_predictor.down.cc[, "C"], 0.025)[[1]]
+  results.per_predictor.down[i, "boot.cc.C.95_ub"] <- quantile(boot.results.per_predictor.down.cc[, "C"], 0.975)[[1]]
+  
+  # mi
+  
+  if(length(fit.per_predictor.down.cc[["na.action"]][["nmiss"]]) != 0) {
+    imputation_formula <- as.formula(paste("~ recom.down.T1", 
+                                           "+", predictor_selected, 
+                                           "+ age.T1",
+                                           "+ male"))
+    
+    ## model
+    
+    imp <- aregImpute(imputation_formula, 
+                      n.impute = 5,
+                      nk = 0,
+                      data = data.wide.down,
+                      pr = FALSE)
+    
+    fit.per_predictor.down.mi <- fit.mult.impute(model_formula,
+                                                 lrm,
+                                                 imp,
+                                                 data = data.wide.down,
+                                                 pr = FALSE)
+    
+    results.per_predictor.down[i, "mi.Rsq"] <- fit.per_predictor.down.mi[["stats"]][["R2"]]
+    results.per_predictor.down[i, "mi.C"] <- fit.per_predictor.down.mi[["stats"]][["C"]]
+    
+    ## boot
+    
+    boot.results.per_predictor.down.mi <- as.data.frame(matrix(nrow = n_boot,
+                                                               ncol = 2))
+    colnames(boot.results.per_predictor.down.mi) <- c("Rsq",
+                                                      "C")
+    for(b in 1:n_boot) {
+      temp <- data.wide.down
+      boot.index <- sample(1:nrow(temp), size = nrow(temp), replace = TRUE)
+      boot.data <- temp[boot.index, ]
+      
+      boot.imp <- aregImpute(imputation_formula, 
+                             n.impute = 5,
+                             nk = 0,
+                             data = boot.data, 
+                             pr = FALSE)
+      
+      boot.fit.per_predictor.down.mi <- fit.mult.impute(model_formula,
+                                                        lrm,
+                                                        boot.imp,
+                                                        data = boot.data,
+                                                        pr = FALSE)
+      
+      boot.results.per_predictor.down.mi[b, "Rsq"] <- boot.fit.per_predictor.down.mi[["stats"]][["R2"]]
+      boot.results.per_predictor.down.mi[b, "C"] <- boot.fit.per_predictor.down.mi[["stats"]][["C"]]
+    }
+    results.per_predictor.down[i, "boot.mi.Rsq.95_lb"] <- quantile(boot.results.per_predictor.down.mi[, "Rsq"], 0.025)[[1]]
+    results.per_predictor.down[i, "boot.mi.Rsq.95_ub"] <- quantile(boot.results.per_predictor.down.mi[, "Rsq"], 0.975)[[1]]
+    results.per_predictor.down[i, "boot.mi.C.95_lb"] <- quantile(boot.results.per_predictor.down.mi[, "C"], 0.025)[[1]]
+    results.per_predictor.down[i, "boot.mi.C.95_ub"] <- quantile(boot.results.per_predictor.down.mi[, "C"], 0.975)[[1]]
+  }
+}
+
+results.per_predictor.down
+
+  # nom vs. scale
+  
+  predictor.down.nom_or_scale <- c("NYHA",
+                                 "edema",
+                                 "orthopnea",
+                                 "PND",
+                                 "cough",
+                                 "nocturia",
+                                 "dizziness",
+                                 "orthostasis",
+                                 "JV",
+                                 "rales")
+  
+  results.per_predictor.down.nom_vs_scale <- merge(predictor.down.nom_or_scale,
+                                                   Tx,
+                                                   by = NULL)
+  colnames(results.per_predictor.down.nom_vs_scale) <- c("predictor.down.nom_or_scale",
+                                                         "Tx")
+  results.per_predictor.down.nom_vs_scale$cc.Rsq.nom_minus_scale <- NA
+  results.per_predictor.down.nom_vs_scale$cc.C.nom_minus_scale <- NA
+  results.per_predictor.down.nom_vs_scale$mi.Rsq.nom_minus_scale <- NA
+  results.per_predictor.down.nom_vs_scale$mi.C.nom_minus_scale <- NA
+  
+  for (i in 1:nrow(results.per_predictor.down.nom_vs_scale)) {
+    predictor_selected <- results.per_predictor.down.nom_vs_scale[i, "predictor.down.nom_or_scale"]
+    predictor_selected.nom <- paste0(predictor_selected, ".nom.down")
+    predictor_selected.scale <- paste0(predictor_selected, ".scale")
+    Tx_selected <- results.per_predictor.down.nom_vs_scale[i, "Tx"]
+    
+    results.per_predictor.down.nom_vs_scale[i, "cc.Rsq.nom_minus_scale"] <-
+      subset(results.per_predictor.down, (predictor.down == predictor_selected.nom)
+                                         &
+                                         (Tx == Tx_selected))$cc.Rsq -
+      subset(results.per_predictor.down, (predictor.down == predictor_selected.scale)
+                                         &
+                                         (Tx == Tx_selected))$cc.Rsq
+    results.per_predictor.down.nom_vs_scale[i, "cc.C.nom_minus_scale"] <-
+      subset(results.per_predictor.down, (predictor.down == predictor_selected.nom)
+                                         &
+                                         (Tx == Tx_selected))$cc.C -
+      subset(results.per_predictor.down, (predictor.down == predictor_selected.scale)
+                                         &
+                                         (Tx == Tx_selected))$cc.C
+    results.per_predictor.down.nom_vs_scale[i, "mi.Rsq.nom_minus_scale"] <-
+      subset(results.per_predictor.down, (predictor.down == predictor_selected.nom)
+                                         &
+                                         (Tx == Tx_selected))$mi.Rsq -
+      subset(results.per_predictor.down, (predictor.down == predictor_selected.scale)
+                                         &
+                                         (Tx == Tx_selected))$mi.Rsq
+    results.per_predictor.down.nom_vs_scale[i, "mi.C.nom_minus_scale"] <-
+      subset(results.per_predictor.down, (predictor.down == predictor_selected.nom)
+                                         &
+                                         (Tx == Tx_selected))$mi.C -
+      subset(results.per_predictor.down, (predictor.down == predictor_selected.scale)
+                                         &
+                                         (Tx == Tx_selected))$mi.C
+  }
+  
+  results.per_predictor.down.nom_vs_scale
+  
+  summary(results.per_predictor.down.nom_vs_scale$cc.Rsq.nom_minus_scale)
+  summary(results.per_predictor.down.nom_vs_scale$cc.C.nom_minus_scale)
+  summary(results.per_predictor.down.nom_vs_scale$mi.Rsq.nom_minus_scale)
+  summary(results.per_predictor.down.nom_vs_scale$mi.C.nom_minus_scale)
+  subset(results.per_predictor.down.nom_vs_scale, (abs(mi.Rsq.nom_minus_scale) >= 0.01)
+                                                  &
+                                                  (abs(mi.C.nom_minus_scale) >= 0.01))
+  
+  # T1 vs. T1 and T0
+  
+  predictor.down.Tx <- c("dose",
+                         "NYHA.nom.down",
+                         "NYHA.scale",
+                         "angina",
+                         "edema.nom.down",
+                         "edema.scale",
+                         "orthopnea.nom.down",
+                         "orthopnea.scale",
+                         "PND.nom.down",
+                         "PND.scale",
+                         "cough.nom.down",
+                         "cough.scale",
+                         "nocturia.nom.down",
+                         "nocturia.scale",
+                         "dizziness.nom.down",
+                         "dizziness.scale",
+                         "orthostasis.nom.down",
+                         "orthostasis.scale",
+                         "syncope",
+                         "BMI",
+                         "SBP",
+                         "DBP",
+                         "SBP_minus_DBP",
+                         "HR",
+                         "S3",
+                         "hepatomegaly",
+                         "JV.nom.down",
+                         "JV.scale",
+                         "rales.nom.down",
+                         "rales.scale",
+                         "Cr")
+  
+  results.per_predictor.down.T1_vs_T1_and_T0 <- as.data.frame(predictor.down.Tx)
+  results.per_predictor.down.T1_vs_T1_and_T0$cc.Rsq.T1_minus_T1_and_T0 <- NA
+  results.per_predictor.down.T1_vs_T1_and_T0$cc.C.T1_minus_T1_and_T0 <- NA
+  results.per_predictor.down.T1_vs_T1_and_T0$mi.Rsq.T1_minus_T1_and_T0 <- NA
+  results.per_predictor.down.T1_vs_T1_and_T0$mi.C.T1_minus_T1_and_T0 <- NA
+  for(i in 1:nrow(results.per_predictor.down.T1_vs_T1_and_T0)) {
+    predictor_selected <- results.per_predictor.down.T1_vs_T1_and_T0[i, "predictor.down.Tx"]
+    
+    results.per_predictor.down.T1_vs_T1_and_T0[i, "cc.Rsq.T1_minus_T1_and_T0"] <- 
+      subset(results.per_predictor.down, (predictor.down == predictor_selected)
+                                         &
+                                         (Tx == "T1"))$cc.Rsq -
+      subset(results.per_predictor.down, (predictor.down == predictor_selected)
+                                         &
+                                         (Tx == "T1_and_T0"))$cc.Rsq
+    results.per_predictor.down.T1_vs_T1_and_T0[i, "cc.C.T1_minus_T1_and_T0"] <- 
+      subset(results.per_predictor.down, (predictor.down == predictor_selected)
+                                         &
+                                         (Tx == "T1"))$cc.C -
+      subset(results.per_predictor.down, (predictor.down == predictor_selected)
+                                         &
+                                         (Tx == "T1_and_T0"))$cc.C
+    results.per_predictor.down.T1_vs_T1_and_T0[i, "mi.Rsq.T1_minus_T1_and_T0"] <- 
+      subset(results.per_predictor.down, (predictor.down == predictor_selected)
+                                         &
+                                         (Tx == "T1"))$mi.Rsq -
+      subset(results.per_predictor.down, (predictor.down == predictor_selected)
+                                         &
+                                         (Tx == "T1_and_T0"))$mi.Rsq
+    results.per_predictor.down.T1_vs_T1_and_T0[i, "mi.C.T1_minus_T1_and_T0"] <- 
+      subset(results.per_predictor.down, (predictor.down == predictor_selected)
+                                         &
+                                         (Tx == "T1"))$mi.C -
+      subset(results.per_predictor.down, (predictor.down == predictor_selected)
+                                         &
+                                         (Tx == "T1_and_T0"))$mi.C
+  }
+  
+  results.per_predictor.down.T1_vs_T1_and_T0
+  
+  summary(results.per_predictor.down.T1_vs_T1_and_T0$cc.Rsq.T1_minus_T1_and_T0)
+  summary(results.per_predictor.down.T1_vs_T1_and_T0$cc.C.T1_minus_T1_and_T0)
+  summary(results.per_predictor.down.T1_vs_T1_and_T0$mi.Rsq.T1_minus_T1_and_T0)
+  summary(results.per_predictor.down.T1_vs_T1_and_T0$mi.C.T1_minus_T1_and_T0)
+  subset(results.per_predictor.down.T1_vs_T1_and_T0, (abs(mi.Rsq.T1_minus_T1_and_T0) >= 0.01)
+                                                     &
+                                                     (abs(mi.C.T1_minus_T1_and_T0) >= 0.01))
+  
+# MODELLING MULTIPLE PREDICTORS ----
+
+## UP-TITRATION ----
+
+### cc
+
+#### model
+
+fit.multiple_predictors.up.cc <- lrm(recom.up.T1 ~ 
+                                       male +
+                                       age.c.T1 + 
+                                       dose.T1 +
+                                       NYHA.scale.T1 +
+                                       edema.scale.T1 +
+                                       orthopnea.scale.T1 +
+                                       PND.scale.T1 +
+                                       cough.scale.T1 +
+                                       nocturia.scale.T1 +
+                                       BMI.c.T1 +
+                                       SBP_minus_DBP.T1 +
+                                       HR.c.T1 +
+                                       T_group, 
+                                     data = data.wide.up)
+fit.multiple_predictors.up.cc
+
+round(exp(fit.multiple_predictors.up.cc$coefficients), 2)
+round(exp(fit.multiple_predictors.up.cc$coefficients - 1.96 * sqrt(diag(fit.multiple_predictors.up.cc$var))), 2)
+round(exp(fit.multiple_predictors.up.cc$coefficients + 1.96 * sqrt(diag(fit.multiple_predictors.up.cc$var))), 2)
+
+#### boot
+
+boot.results.multiple_predictors.up.cc <- as.data.frame(matrix(nrow = n_boot,
+                                                               ncol = 2))
+colnames(boot.results.multiple_predictors.up.cc) <- c("Rsq",
+                                                      "C")
+
+for (b in 1:n_boot) {
+  temp <- data.wide.up
+  boot.index <- sample(1:nrow(temp), size = nrow(temp), replace = TRUE)
+  boot.data <- temp[boot.index, ]
+  
+  boot.fit.multiple_predictors.up.cc <- lrm(recom.up.T1 ~ 
+                                              male +
+                                              age.c.T1 + 
+                                              dose.T1 +
+                                              NYHA.scale.T1 +
+                                              edema.scale.T1 +
+                                              orthopnea.scale.T1 +
+                                              PND.scale.T1 +
+                                              cough.scale.T1 +
+                                              nocturia.scale.T1 +
+                                              BMI.c.T1 +
+                                              SBP_minus_DBP.T1 +
+                                              HR.c.T1 +
+                                              T_group,  
+                                            data = boot.data)
+  
+  boot.results.multiple_predictors.up.cc[b, "Rsq"] <- boot.fit.multiple_predictors.up.cc[["stats"]][["R2"]]
+  boot.results.multiple_predictors.up.cc[b, "C"] <- boot.fit.multiple_predictors.up.cc[["stats"]][["C"]]
+}
+
+quantile(boot.results.multiple_predictors.up.cc$Rsq, c(0.025, 0.975))
+quantile(boot.results.multiple_predictors.up.cc$C, c(0.025, 0.975))
+
+### mi
+
+#### model 
+
+imp <- aregImpute(~ recom.up.T1 + 
+                    male +
+                    age.c.T1 + 
+                    dose.T1 +
+                    NYHA.scale.T1 +
+                    edema.scale.T1 +
+                    orthopnea.scale.T1 +
+                    PND.scale.T1 +
+                    cough.scale.T1 +
+                    nocturia.scale.T1 +
+                    BMI.c.T1 +
+                    SBP_minus_DBP.T1 +
+                    HR.c.T1 +
+                    T_group, 
+                  n.impute = 5,
+                  nk = 0,
+                  data = data.wide.up)
+
+fit.multiple_predictors.up.mi <- fit.mult.impute(recom.up.T1 ~ 
+                                                   male +
+                                                   age.c.T1 + 
+                                                   dose.T1 +
+                                                   NYHA.scale.T1 +
+                                                   edema.scale.T1 +
+                                                   orthopnea.scale.T1 +
+                                                   PND.scale.T1 +
+                                                   cough.scale.T1 +
+                                                   nocturia.scale.T1 +
+                                                   BMI.c.T1 +
+                                                   SBP_minus_DBP.T1 +
+                                                   HR.c.T1 +
+                                                   T_group,
+                                                 lrm,
+                                                 imp,
+                                                 data = data.wide.up)
+fit.multiple_predictors.up.mi
+
+round(exp(fit.multiple_predictors.up.mi$coefficients), 2)
+round(exp(fit.multiple_predictors.up.mi$coefficients - 1.96 * sqrt(diag(fit.multiple_predictors.up.mi$var))), 2)
+round(exp(fit.multiple_predictors.up.mi$coefficients + 1.96 * sqrt(diag(fit.multiple_predictors.up.mi$var))), 2)
+
+#### boot
+
+boot.results.multiple_predictors.up.mi <- as.data.frame(matrix(nrow = n_boot,
+                                                               ncol = 2))
+colnames(boot.results.multiple_predictors.up.mi) <- c("Rsq",
+                                                      "C")
+
+for (b in 1:n_boot) {
+  temp <- data.wide.up
+  boot.index <- sample(1:nrow(temp), size = nrow(temp), replace = TRUE)
+  boot.data <- temp[boot.index, ]
+  
+  boot.imp <- aregImpute(~ recom.up.T1 + 
+                           male +
+                           age.c.T1 + 
+                           dose.T1 +
+                           NYHA.scale.T1 +
+                           edema.scale.T1 +
+                           orthopnea.scale.T1 +
+                           PND.scale.T1 +
+                           cough.scale.T1 +
+                           nocturia.scale.T1 +
+                           BMI.c.T1 +
+                           SBP_minus_DBP.T1 +
+                           HR.c.T1 +
+                           T_group, 
+                         n.impute = 5,
+                         nk = 0,
+                         data = boot.data,
+                         pr = FALSE)
+  
+  boot.fit.multiple_predictors.up.mi <- fit.mult.impute(recom.up.T1 ~ 
+                                                          male +
+                                                          age.c.T1 + 
+                                                          dose.T1 +
+                                                          NYHA.scale.T1 +
+                                                          edema.scale.T1 +
+                                                          orthopnea.scale.T1 +
+                                                          PND.scale.T1 +
+                                                          cough.scale.T1 +
+                                                          nocturia.scale.T1 +
+                                                          BMI.c.T1 +
+                                                          SBP_minus_DBP.T1 +
+                                                          HR.c.T1 +
+                                                          T_group,
+                                                        lrm,
+                                                        boot.imp,
+                                                        data = boot.data,
+                                                        pr = FALSE)
+  
+  boot.results.multiple_predictors.up.mi[b, "Rsq"] <- boot.fit.multiple_predictors.up.mi[["stats"]][["R2"]]
+  boot.results.multiple_predictors.up.mi[b, "C"] <- boot.fit.multiple_predictors.up.mi[["stats"]][["C"]]
+}
+
+quantile(boot.results.multiple_predictors.up.mi$Rsq, c(0.025, 0.975))
+quantile(boot.results.multiple_predictors.up.mi$C, c(0.025, 0.975))
+
+#### calibration plot  
+
+data.wide.up$pred_prob.fit.multiple_predictors.up.mi <- predict(fit.multiple_predictors.up.mi, type = "fitted.ind")
+data.wide.up$decile <- cut(data.wide.up$pred_prob.fit.multiple_predictors.up.mi,
+                           breaks = quantile(data.wide.up$pred_prob.fit.multiple_predictors.up.mi, prob = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0)), 
+                           labels = c(1:10),
+                           include.lowest = TRUE)
+pred_prob.fit.multiple_predictors.up.mi.mean <- aggregate(data.wide.up$pred_prob.fit.multiple_predictors.up.mi,
+                                                 list(data.wide.up$decile), 
+                                                 mean)
+colnames(pred_prob.fit.multiple_predictors.up.mi.mean) <- c("decile",
+                                                            "pred_prob.fit.multiple_predictors.up.mi.mean")
+recom.up.T1.mean <- aggregate(data.wide.up$recom.up.T1,
+                              list(data.wide.up$decile), 
+                              mean)
+colnames(recom.up.T1.mean) <- c("decile",
+                                "recom.up.T1.mean")
+calibration_plot.up <- merge(pred_prob.fit.multiple_predictors.up.mi.mean,
+                             recom.up.T1.mean,
+                             by = "decile")
+calibration_plot.up <- calibration_plot.up[order(calibration_plot.up$decile), ]
+
+ggplot(calibration_plot.up, aes(x = pred_prob.fit.multiple_predictors.up.mi.mean,
+                                y = recom.up.T1.mean)) +
+  geom_segment(x = 0, xend = 1, y = 0,  yend = 1, colour = "grey") +
+  geom_smooth(method = "loess", se = FALSE, colour = "black", span = 0.80) +
+  scale_x_continuous(name = "Predicted probability (%)",
+                     limits = c(0, 1),
+                     breaks = seq(0, 1, 0.10),
+                     labels = seq(0, 100, 10)) +
+  scale_y_continuous(name = "Observed probability (%)",
+                     limits = c(0, 1),
+                     breaks = seq(0, 1, 0.10),
+                     labels = seq(0, 100, 10)) +
+  theme_minimal()
+
+ggplot(calibration_plot.up, aes(x = pred_prob.fit.multiple_predictors.up.mi.mean,
+                                y = recom.up.T1.mean)) +
+  geom_segment(x = 0, xend = 1, y = 0,  yend = 1, colour = "grey") +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE, colour = "black", span = 0.80) +
+  geom_vline(xintercept = 0.09) +
+  geom_vline(xintercept = 0.30) +
+  geom_vline(xintercept = 0.57) +
+  scale_x_continuous(name = "Predicted probability (%)",
+                     limits = c(0, 1),
+                     breaks = seq(0, 1, 0.10),
+                     labels = seq(0, 100, 10)) +
+  scale_y_continuous(name = "Observed probability (%)",
+                     limits = c(0, 1),
+                     breaks = seq(0, 1, 0.10),
+                     labels = seq(0, 100, 10)) +
+  theme_minimal()
+
+## DOWN-TITRATION ----
+
+### cc
+
+#### model
+
+fit.multiple_predictors.down.cc <- lrm(recom.down.T1 ~
+                                         male +
+                                         age.T1 +
+                                         dose.T1 +
+                                         NYHA.scale.T1 +
+                                         dizziness.scale.T1 +
+                                         orthostasis.scale.T1 +
+                                         syncope.T1 +
+                                         SBP.c.T1 +
+                                         T_group, 
+                                       data = data.wide.down)
+fit.multiple_predictors.down.cc
+
+#### boot
+
+boot.results.multiple_predictors.down.cc <- as.data.frame(matrix(nrow = n_boot,
+                                                                 ncol = 2))
+colnames(boot.results.multiple_predictors.down.cc) <- c("Rsq",
+                                                        "C")
+
+for (b in 1:n_boot) {
+  temp <- data.wide.down
+  boot.index <- sample(1:nrow(temp), size = nrow(temp), replace = TRUE)
+  boot.data <- temp[boot.index, ]
+  
+  boot.fit.multiple_predictors.down.cc <- lrm(recom.down.T1 ~ 
+                                                male +
+                                                age.T1 +
+                                                dose.T1 +
+                                                NYHA.scale.T1 +
+                                                dizziness.scale.T1 +
+                                                orthostasis.scale.T1 +
+                                                syncope.T1 +
+                                                SBP.c.T1 +
+                                                T_group, 
+                                              data = boot.data)
+  
+  boot.results.multiple_predictors.down.cc[b, "Rsq"] <- boot.fit.multiple_predictors.down.cc[["stats"]][["R2"]]
+  boot.results.multiple_predictors.down.cc[b, "C"] <- boot.fit.multiple_predictors.down.cc[["stats"]][["C"]]
+}
+
+quantile(boot.results.multiple_predictors.down.cc$Rsq, c(0.025, 0.975))
+quantile(boot.results.multiple_predictors.down.cc$C, c(0.025, 0.975))
+
+### mi
+
+#### model 
+
+imp <- aregImpute(~ recom.down.T1 +
+                    male +
+                    age.T1 +
+                    dose.T1 +
+                    NYHA.scale.T1 +
+                    dizziness.scale.T1 +
+                    orthostasis.scale.T1 +
+                    syncope.T1 +
+                    SBP.c.T1 +
+                    T_group,
+                  n.impute = 5,
+                  nk = 0,
+                  data = data.wide.down)
+
+fit.multiple_predictors.down.mi <- fit.mult.impute(recom.down.T1 ~
+                                                      male +
+                                                      age.T1 +
+                                                      dose.T1 +
+                                                      NYHA.scale.T1 +
+                                                      dizziness.scale.T1 +
+                                                      orthostasis.scale.T1 +
+                                                      syncope.T1 +
+                                                      SBP.c.T1 +
+                                                      T_group,
+                                                    lrm,
+                                                    imp,
+                                                    data = data.wide.down)
+fit.multiple_predictors.down.mi  
+
+round(exp(fit.multiple_predictors.down.mi$coefficients), 2)
+round(exp(fit.multiple_predictors.down.mi$coefficients - 1.96 * sqrt(diag(fit.multiple_predictors.down.mi$var))), 2)
+round(exp(fit.multiple_predictors.down.mi$coefficients + 1.96 * sqrt(diag(fit.multiple_predictors.down.mi$var))), 2)
+
+#### boot
+
+boot.results.multiple_predictors.down.mi <- as.data.frame(matrix(nrow = n_boot,
+                                                                 ncol = 2))
+colnames(boot.results.multiple_predictors.down.mi) <- c("Rsq",
+                                                        "C")
+
+for (b in 1:n_boot) {
+  temp <- data.wide.down
+  boot.index <- sample(1:nrow(temp), size = nrow(temp), replace = TRUE)
+  boot.data <- temp[boot.index, ]
+  
+  boot.imp <- aregImpute(~ recom.down.T1 + 
+                           male +
+                           age.T1 +
+                           dose.T1 +
+                           NYHA.scale.T1 +
+                           dizziness.scale.T1 +
+                           orthostasis.scale.T1 +
+                           syncope.T1 +
+                           SBP.c.T1 +
+                           T_group, 
+                         n.impute = 5,
+                         nk = 0,
+                         data = boot.data,
+                         pr = FALSE)
+  
+  boot.fit.multiple_predictors.down.mi <- fit.mult.impute(recom.down.T1 ~ 
+                                                            male +
+                                                            age.T1 +
+                                                            dose.T1 +
+                                                            NYHA.scale.T1 +
+                                                            dizziness.scale.T1 +
+                                                            orthostasis.scale.T1 +
+                                                            syncope.T1 +
+                                                            SBP.c.T1 +
+                                                            T_group,
+                                                          lrm,
+                                                          boot.imp,
+                                                          data = boot.data,
+                                                          pr = FALSE)
+
+  boot.results.multiple_predictors.down.mi[b, "Rsq"] <- boot.fit.multiple_predictors.down.mi[["stats"]][["R2"]]
+  boot.results.multiple_predictors.down.mi[b, "C"] <- boot.fit.multiple_predictors.down.mi[["stats"]][["C"]]
+}
+
+quantile(boot.results.multiple_predictors.down.mi$Rsq, c(0.025, 0.975))
+quantile(boot.results.multiple_predictors.down.mi$C, c(0.025, 0.975))
+
+#### calibration plot  
+
+data.wide.down$pred_prob.fit.multiple_predictors.down.mi <- predict(fit.multiple_predictors.down.mi, type = "fitted.ind")
+data.wide.down$decile <- cut(data.wide.down$pred_prob.fit.multiple_predictors.down.mi,
+                             breaks = quantile(data.wide.down$pred_prob.fit.multiple_predictors.down.mi, prob = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0)), 
+                             labels = c(1:10),
+                             include.lowest = TRUE)
+pred_prob.fit.multiple_predictors.down.mi.mean <- aggregate(data.wide.down$pred_prob.fit.multiple_predictors.down.mi,
+                                                   list(data.wide.down$decile), 
+                                                   mean)
+colnames(pred_prob.fit.multiple_predictors.down.mi.mean) <- c("decile",
+                                                              "pred_prob.fit.multiple_predictors.down.mi.mean")
+recom.down.T1.mean <- aggregate(data.wide.down$recom.down.T1,
+                                list(data.wide.down$decile), 
+                                mean)
+colnames(recom.down.T1.mean) <- c("decile",
+                                  "recom.down.T1.mean")
+calibration_plot.down <- merge(pred_prob.fit.multiple_predictors.down.mi.mean,
+                               recom.down.T1.mean,
+                               by = "decile")
+calibration_plot.down <- calibration_plot.down[order(calibration_plot.down$decile), ]
+
+ggplot(calibration_plot.down, aes(x = pred_prob.fit.multiple_predictors.down.mi.mean,
+                                  y = recom.down.T1.mean)) +
+  geom_segment(x = 0, xend = 1, y = 0,  yend = 1, colour = "grey") +
+  geom_smooth(method = "loess", se = FALSE, colour = "black", span = 0.80) +
+  scale_x_continuous(name = "Predicted probability (%)",
+                     limits = c(0, 1),
+                     breaks = seq(0, 1, 0.10),
+                     labels = seq(0, 100, 10)) +
+  scale_y_continuous(name = "Observed probability (%)",
+                     limits = c(0, 1),
+                     breaks = seq(0, 1, 0.10),
+                     labels = seq(0, 100, 10)) +
+  theme_minimal()
+
+ggplot(calibration_plot.down, aes(x = pred_prob.fit.multiple_predictors.down.mi.mean,
+                                  y = recom.down.T1.mean)) +
+  geom_point() +
+  geom_segment(x = 0, xend = 1, y = 0,  yend = 1, colour = "grey") +
+  geom_point() + 
+  geom_smooth(method = "loess", se = FALSE, colour = "black", span = 0.80) +
+  geom_vline(xintercept = 0.04) +
+  geom_vline(xintercept = 0.14) +
+  geom_vline(xintercept = 0.27) +
+  geom_vline(xintercept = 0.47) +
+  scale_x_continuous(name = "Predicted probability (%)",
+                     limits = c(0, 1),
+                     breaks = seq(0, 1, 0.10),
+                     labels = seq(0, 100, 10)) +
+  scale_y_continuous(name = "Observed probability (%)",
+                     limits = c(-0.01, 1),
+                     breaks = seq(0, 1, 0.10),
+                     labels = seq(0, 100, 10)) +
+  theme_minimal()
+
+# SESSION INFO ----
+
+sessionInfo()
