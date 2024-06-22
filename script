@@ -2750,7 +2750,7 @@ quantile(boot.results.multiple_predictors.up.mi$C, c(0.025, 0.975))
 
 data.wide.up$pred_prob.fit.multiple_predictors.up.mi <- predict(fit.multiple_predictors.up.mi, type = "fitted.ind")
 data.wide.up$decile <- cut(data.wide.up$pred_prob.fit.multiple_predictors.up.mi,
-                           breaks = quantile(data.wide.up$pred_prob.fit.multiple_predictors.up.mi, prob = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0)), 
+                           breaks = quantile(data.wide.up$pred_prob.fit.multiple_predictors.up.mi, prob = seq(0, 1, 0.1)), 
                            labels = c(1:10),
                            include.lowest = TRUE)
 pred_prob.fit.multiple_predictors.up.mi.mean <- aggregate(data.wide.up$pred_prob.fit.multiple_predictors.up.mi,
@@ -2940,7 +2940,7 @@ quantile(boot.results.multiple_predictors.down.mi$C, c(0.025, 0.975))
 
 data.wide.down$pred_prob.fit.multiple_predictors.down.mi <- predict(fit.multiple_predictors.down.mi, type = "fitted.ind")
 data.wide.down$decile <- cut(data.wide.down$pred_prob.fit.multiple_predictors.down.mi,
-                             breaks = quantile(data.wide.down$pred_prob.fit.multiple_predictors.down.mi, prob = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0)), 
+                             breaks = quantile(data.wide.down$pred_prob.fit.multiple_predictors.down.mi, prob = seq(0, 1, 0.1)), 
                              labels = c(1:10),
                              include.lowest = TRUE)
 pred_prob.fit.multiple_predictors.down.mi.mean <- aggregate(data.wide.down$pred_prob.fit.multiple_predictors.down.mi,
